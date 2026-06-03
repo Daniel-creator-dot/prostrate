@@ -1,0 +1,6 @@
+{
+  "name": "PrimeCare",
+  "description": "Comprehensive PSA Screening lifecycle platform, covering client onboarding, participant registration, laboratory results, physician clinical review, and billing/reporting.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
