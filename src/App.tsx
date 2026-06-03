@@ -654,26 +654,25 @@ export default function App() {
   const unreadNotifCount = db.notifications.filter(n => !n.isRead).length;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans antialiased text-slate-800" id="primecare-app-root">
+    <div className="min-h-screen bg-[#f8fafc] flex flex-col antialiased text-slate-800" id="primecare-app-root">
       
-      {/* 🛡️ Simulated Active Role Credentials Switcher Banner */}
-      <div className="bg-blue-50/70 border-b border-blue-100 py-2.5 px-6 flex flex-col md:flex-row items-center justify-between text-xs gap-3 font-sans">
+      {/* Role Switcher Banner */}
+      <div className="bg-slate-900 border-b border-slate-800 py-2 px-6 flex flex-col md:flex-row items-center justify-between text-xs gap-3">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-blue-600 shrink-0 select-none animate-pulse" />
-          <span className="text-blue-950 font-sans">
-            <strong className="font-semibold text-blue-900">Simulated Authority Swapper:</strong> Interactively toggle active roles to audit medical workflows.
+          <Sparkles className="w-3.5 h-3.5 text-blue-400 shrink-0 select-none" />
+          <span className="text-slate-300">
+            <strong className="font-semibold text-white">Role Switcher</strong> — Toggle active roles to audit workflows
           </span>
         </div>
 
         <div className="flex items-center gap-2.5">
-          <span className="text-slate-500 font-sans font-medium text-xs">Active Session:</span>
+          <span className="text-slate-400 font-medium text-xs">Session:</span>
           <select
             value={currentUser.role}
             onChange={(e) => {
               const matched = db.users.find(u => u.role === e.target.value);
               if (matched) {
                 setCurrentUser(matched);
-                // Also trigger login audit trace
                 const dummyLog: AuditLog = {
                   id: `LOG-SWAP-${Date.now()}`,
                   user: `${matched.name} (${matched.role})`,
@@ -684,7 +683,6 @@ export default function App() {
                   newValue: `Swapped role authorization to ${matched.role}`
                 };
                 setDb(prev => ({ ...prev, auditLogs: [dummyLog, ...prev.auditLogs] }));
-                // Automatically switch tabs if permissions are restricted for new role
                 if (matched.role === 'Corporate Viewer') {
                   setActiveTab('reports');
                 } else if (matched.role === 'Laboratory Officer') {
@@ -698,10 +696,10 @@ export default function App() {
                 }
               }
             }}
-            className="bg-white text-slate-700 py-1 px-3 rounded-lg border border-slate-200 font-sans cursor-pointer text-xs font-semibold hover:bg-slate-50 transition shadow-2xs"
+            className="bg-slate-800 text-slate-200 py-1 px-3 rounded-md border border-slate-700 cursor-pointer text-xs font-medium hover:bg-slate-700 transition"
           >
             {db.users.map(u => (
-              <option key={u.id} value={u.role}>{u.name} — ({u.role})</option>
+              <option key={u.id} value={u.role}>{u.name} — {u.role}</option>
             ))}
           </select>
         </div>
@@ -710,54 +708,54 @@ export default function App() {
       {/* Primary Layout */}
       {isLoggedOut ? (
         /* Module 1: Login Form Layout */
-        <div className="flex-1 flex items-center justify-center p-6 min-h-[85vh]">
-          <div className="bg-white rounded-2xl shadow-xs border border-slate-200/80 p-8 w-full max-w-md space-y-6 font-sans">
-            <div className="text-center space-y-2 pb-4 border-b border-slate-100">
-              <h1 className="text-2xl font-bold text-slate-900 tracking-tight leading-none font-display">US PrimeCare Portal</h1>
-              <span className="text-[10px] text-slate-400 font-mono tracking-widest block uppercase font-semibold">MED-RESPONSIBLE IMMUNODIAGNOSTICS</span>
+        <div className="flex-1 flex items-center justify-center p-6 min-h-[85vh] animate-fade-in">
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 w-full max-w-md space-y-6">
+            <div className="text-center space-y-1.5 pb-5 border-b border-slate-100">
+              <h1 className="text-2xl font-bold text-slate-900 tracking-tight leading-none font-display">PrimeCare Portal</h1>
+              <span className="text-[10px] text-slate-400 font-mono tracking-[0.15em] block uppercase font-semibold">PSA Screening Management</span>
             </div>
 
             <form onSubmit={handleLogin} className="space-y-4">
-              <div className="space-y-1.5 font-sans">
-                <label className="text-xs font-medium text-slate-500">Corporate Email Address</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-500 tracking-wide">Corporate Email</label>
                 <input
                   type="email"
                   required
                   placeholder="e.g. sarah.jenkins@primecare.com"
                   value={loginEmail}
                   onChange={(e) => setLoginEmail(e.target.value)}
-                  className="w-full p-2.5 border border-slate-200 rounded-lg text-xs bg-slate-50 focus:bg-white focus:ring-1 focus:ring-blue-400 focus:border-blue-400 outline-hidden transition duration-150"
+                  className="w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50/50 focus:bg-white transition duration-150"
                 />
               </div>
 
-              <div className="space-y-1.5 font-sans">
-                <label className="text-xs font-medium text-slate-500">Access Password (Enter: "password")</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-500 tracking-wide">Password</label>
                 <input
                   type="password"
                   required
                   placeholder="••••••••"
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
-                  className="w-full p-2.5 border border-slate-200 rounded-lg text-xs bg-slate-50 focus:bg-white focus:ring-1 focus:ring-blue-400 focus:border-blue-400 outline-hidden transition duration-150 font-mono"
+                  className="w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50/50 focus:bg-white transition duration-150 font-mono"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={isAccountLocked}
-                className={`w-full py-2.5 rounded-lg text-xs font-bold text-white shadow-xs transition duration-150 ${
-                  isAccountLocked ? 'bg-slate-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 cursor-pointer'
+                className={`w-full py-2.5 rounded-lg text-sm font-semibold text-white transition duration-150 ${
+                  isAccountLocked ? 'bg-slate-400 cursor-not-allowed' : 'bg-slate-900 hover:bg-slate-800 cursor-pointer'
                 }`}
               >
-                {isAccountLocked ? 'Account Security Locked' : 'Secure Authorization Login'}
+                {isAccountLocked ? 'Account Locked' : 'Sign In'}
               </button>
             </form>
 
-            <div className="p-3.5 bg-slate-550/5 border border-slate-200 rounded-xl text-[11px] text-slate-500 leading-relaxed font-sans space-y-1">
-              <span className="font-semibold uppercase tracking-wider block text-[9px] text-slate-400">Simulated Safe-Auth credentials:</span>
-              <p>• Sarah Jenkins email: <strong className="font-mono text-slate-700">sarah.jenkins@primecare.com</strong></p>
-              <p>• Password: <strong className="font-mono text-slate-700">password</strong></p>
-              <p className="text-slate-400 text-[10px] pt-1">Select other profiles using the authority swapper bar at the top.</p>
+            <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg text-[11px] text-slate-500 leading-relaxed space-y-1">
+              <span className="font-semibold uppercase tracking-wider block text-[9px] text-slate-400">Demo credentials:</span>
+              <p>Email: <strong className="font-mono text-slate-700">sarah.jenkins@primecare.com</strong></p>
+              <p>Password: <strong className="font-mono text-slate-700">password</strong></p>
+              <p className="text-slate-400 text-[10px] pt-1">Switch roles using the bar at the top.</p>
             </div>
           </div>
         </div>
@@ -766,17 +764,17 @@ export default function App() {
         <div className="flex-1 flex flex-col md:flex-row">
           
           {/* LEFT COMPACT NAVIGATION SIDEBAR */}
-          <aside className="w-full md:w-64 bg-white text-slate-600 flex flex-col justify-between shrink-0 border-r border-slate-200 font-sans">
+          <aside className="w-full md:w-64 bg-white text-slate-600 flex flex-col justify-between shrink-0 border-r border-slate-200">
             <div>
               {/* Institution Title */}
-              <div className="p-6 border-b border-slate-100 text-center md:text-left space-y-1 bg-[#F8FAFC]/55">
-                <h1 className="text-base font-bold text-slate-900 tracking-tight flex items-center justify-center md:justify-start gap-2.5 font-display">
-                  <div className="p-1 bg-blue-600 rounded-lg text-white">
-                    <ShieldCheck className="w-4 h-4" />
+              <div className="p-5 border-b border-slate-100 text-center md:text-left space-y-0.5">
+                <h1 className="text-[15px] font-bold text-slate-900 tracking-tight flex items-center justify-center md:justify-start gap-2 font-display">
+                  <div className="p-1.5 bg-slate-900 rounded-md text-white">
+                    <ShieldCheck className="w-3.5 h-3.5" />
                   </div>
-                  US PrimeCare
+                  PrimeCare
                 </h1>
-                <span className="text-[10px] font-mono text-slate-400 tracking-widest block font-bold uppercase pl-7">PSA LIFECYCLE</span>
+                <span className="text-[9px] font-mono text-slate-400 tracking-[0.15em] block font-semibold uppercase pl-7">PSA Lifecycle</span>
               </div>
 
               {/* Sidebar Action Menu Tabs List */}
@@ -784,141 +782,138 @@ export default function App() {
                 {currentUser.role !== 'Corporate Viewer' && (
                   <button
                     onClick={() => setActiveTab('dashboard')}
-                    className={`w-full px-3.5 py-2.5 rounded-lg inline-flex items-center gap-2.5 font-medium transition duration-150 cursor-pointer ${
-                      activeTab === 'dashboard' ? 'bg-blue-50 text-blue-700 font-semibold' : 'hover:bg-slate-50 hover:text-slate-900 text-slate-600'
+                    className={`w-full px-3 py-2 rounded-lg inline-flex items-center gap-2.5 font-medium transition duration-150 cursor-pointer text-[13px] ${
+                      activeTab === 'dashboard' ? 'bg-slate-900 text-white font-semibold' : 'hover:bg-slate-50 text-slate-600'
                     }`}
                   >
-                    <Activity className="w-4.5 h-4.5" />
-                    Operational Center
+                    <Activity className="w-4 h-4" />
+                    Dashboard
                   </button>
                 )}
 
                 {(perm.canManageClients) && (
                   <button
                     onClick={() => setActiveTab('clients')}
-                    className={`w-full px-3.5 py-2.5 rounded-lg inline-flex items-center gap-2.5 font-medium transition duration-150 cursor-pointer ${
-                      activeTab === 'clients' ? 'bg-blue-50 text-blue-700 font-semibold' : 'hover:bg-slate-50 hover:text-slate-900 text-slate-600'
+                    className={`w-full px-3 py-2 rounded-lg inline-flex items-center gap-2.5 font-medium transition duration-150 cursor-pointer text-[13px] ${
+                      activeTab === 'clients' ? 'bg-slate-900 text-white font-semibold' : 'hover:bg-slate-50 text-slate-600'
                     }`}
                   >
-                    <Briefcase className="w-4.5 h-4.5" />
-                    Clients Onboarding
+                    <Briefcase className="w-4 h-4" />
+                    Clients
                   </button>
                 )}
 
                 {(perm.canManageCampaigns) && (
                   <button
                     onClick={() => setActiveTab('campaigns')}
-                    className={`w-full px-3.5 py-2.5 rounded-lg inline-flex items-center gap-2.5 font-medium transition duration-150 cursor-pointer ${
-                      activeTab === 'campaigns' ? 'bg-blue-50 text-blue-700 font-semibold' : 'hover:bg-slate-50 hover:text-slate-900 text-slate-600'
+                    className={`w-full px-3 py-2 rounded-lg inline-flex items-center gap-2.5 font-medium transition duration-150 cursor-pointer text-[13px] ${
+                      activeTab === 'campaigns' ? 'bg-slate-900 text-white font-semibold' : 'hover:bg-slate-50 text-slate-600'
                     }`}
                   >
-                    <Calendar className="w-4.5 h-4.5" />
-                    Screening Campaigns
+                    <Calendar className="w-4 h-4" />
+                    Campaigns
                   </button>
                 )}
 
                 {(perm.canRegisterParticipants) && (
                   <button
                     onClick={() => setActiveTab('participants')}
-                    className={`w-full px-3.5 py-2.5 rounded-lg inline-flex items-center gap-2.5 font-medium transition duration-150 cursor-pointer ${
-                      activeTab === 'participants' ? 'bg-blue-50 text-blue-700 font-semibold' : 'hover:bg-slate-50 hover:text-slate-900 text-slate-600'
+                    className={`w-full px-3 py-2 rounded-lg inline-flex items-center gap-2.5 font-medium transition duration-150 cursor-pointer text-[13px] ${
+                      activeTab === 'participants' ? 'bg-slate-900 text-white font-semibold' : 'hover:bg-slate-50 text-slate-600'
                     }`}
                   >
-                    <Users className="w-4.5 h-4.5" />
-                    Participant Intake
+                    <Users className="w-4 h-4" />
+                    Participants
                   </button>
                 )}
 
                 {(perm.canEnterLabResults) && (
                   <button
                     onClick={() => setActiveTab('laboratory')}
-                    className={`w-full px-3.5 py-2.5 rounded-lg inline-flex items-center gap-2.5 font-medium transition duration-150 cursor-pointer ${
-                      activeTab === 'laboratory' ? 'bg-blue-50 text-blue-700 font-semibold' : 'hover:bg-slate-50 hover:text-slate-900 text-slate-600'
+                    className={`w-full px-3 py-2 rounded-lg inline-flex items-center gap-2.5 font-medium transition duration-150 cursor-pointer text-[13px] ${
+                      activeTab === 'laboratory' ? 'bg-slate-900 text-white font-semibold' : 'hover:bg-slate-50 text-slate-600'
                     }`}
                   >
-                    <FlaskConical className="w-4.5 h-4.5" />
-                    Laboratory Assays
+                    <FlaskConical className="w-4 h-4" />
+                    Laboratory
                   </button>
                 )}
 
                 {(perm.canPerformClinicalReview) && (
                   <button
                     onClick={() => setActiveTab('clinical')}
-                    className={`w-full px-3.5 py-2.5 rounded-lg inline-flex items-center gap-2.5 font-medium transition duration-150 cursor-pointer ${
-                      activeTab === 'clinical' ? 'bg-blue-50 text-blue-700 font-semibold' : 'hover:bg-slate-50 hover:text-slate-900 text-slate-600'
+                    className={`w-full px-3 py-2 rounded-lg inline-flex items-center gap-2.5 font-medium transition duration-150 cursor-pointer text-[13px] ${
+                      activeTab === 'clinical' ? 'bg-slate-900 text-white font-semibold' : 'hover:bg-slate-50 text-slate-600'
                     }`}
                   >
-                    <Stethoscope className="w-4.5 h-4.5" />
-                    Board Clinical Review
+                    <Stethoscope className="w-4 h-4" />
+                    Clinical Review
                   </button>
                 )}
 
                 {(perm.canManageBilling) && (
                   <button
                     onClick={() => setActiveTab('billing')}
-                    className={`w-full px-3.5 py-2.5 rounded-lg inline-flex items-center gap-2.5 font-medium transition duration-150 cursor-pointer ${
-                      activeTab === 'billing' ? 'bg-blue-50 text-blue-700 font-semibold' : 'hover:bg-slate-50 hover:text-slate-900 text-slate-600'
+                    className={`w-full px-3 py-2 rounded-lg inline-flex items-center gap-2.5 font-medium transition duration-150 cursor-pointer text-[13px] ${
+                      activeTab === 'billing' ? 'bg-slate-900 text-white font-semibold' : 'hover:bg-slate-50 text-slate-600'
                     }`}
                   >
-                    <DollarSign className="w-4.5 h-4.5" />
-                    Billing & Finance
+                    <DollarSign className="w-4 h-4" />
+                    Billing
                   </button>
                 )}
 
                 <button
                   onClick={() => setActiveTab('reports')}
-                  className={`w-full px-3.5 py-2.5 rounded-lg inline-flex items-center gap-2.5 font-medium transition duration-150 cursor-pointer ${
-                    activeTab === 'reports' ? 'bg-blue-50 text-blue-700 font-semibold' : 'hover:bg-slate-50 hover:text-slate-900 text-slate-600'
+                  className={`w-full px-3 py-2 rounded-lg inline-flex items-center gap-2.5 font-medium transition duration-150 cursor-pointer text-[13px] ${
+                    activeTab === 'reports' ? 'bg-slate-900 text-white font-semibold' : 'hover:bg-slate-50 text-slate-600'
                     }`}
                 >
-                  <FileText className="w-4.5 h-4.5" />
-                  Printable Reports
+                  <FileText className="w-4 h-4" />
+                  Reports
                 </button>
 
                 {(perm.canViewAuditLogs) && (
                     <button
                       onClick={() => setActiveTab('audits')}
-                      className={`w-full px-3.5 py-2.5 rounded-lg inline-flex items-center gap-2.5 font-medium transition duration-150 cursor-pointer ${
-                        activeTab === 'audits' ? 'bg-blue-50 text-blue-700 font-semibold' : 'hover:bg-slate-50 hover:text-slate-900 text-slate-600'
+                      className={`w-full px-3 py-2 rounded-lg inline-flex items-center gap-2.5 font-medium transition duration-150 cursor-pointer text-[13px] ${
+                        activeTab === 'audits' ? 'bg-slate-900 text-white font-semibold' : 'hover:bg-slate-50 text-slate-600'
                       }`}
                     >
-                      <History className="w-4.5 h-4.5" />
-                      Full Audits Trail
+                      <History className="w-4 h-4" />
+                      Audit Trail
                     </button>
                 )}
 
                 {(currentUser.role === 'Super Administrator') && (
                   <button
                     onClick={() => setActiveTab('settings')}
-                    className={`w-full px-3.5 py-2.5 rounded-lg inline-flex items-center gap-2.5 font-medium transition duration-150 cursor-pointer ${
-                      activeTab === 'settings' ? 'bg-blue-50 text-blue-700 font-semibold' : 'hover:bg-slate-50 hover:text-slate-900 text-slate-600'
+                    className={`w-full px-3 py-2 rounded-lg inline-flex items-center gap-2.5 font-medium transition duration-150 cursor-pointer text-[13px] ${
+                      activeTab === 'settings' ? 'bg-slate-900 text-white font-semibold' : 'hover:bg-slate-50 text-slate-600'
                     }`}
                   >
-                    <Settings className="w-4.5 h-4.5" />
-                    System Access Settings
+                    <Settings className="w-4 h-4" />
+                    Settings
                   </button>
                 )}
               </nav>
             </div>
 
             {/* Bottom active profile user line */}
-            <div className="p-5 border-t border-slate-100 bg-slate-50/50 space-y-3 shrink-0">
-              <div className="space-y-1">
-                <span className="text-[9px] text-slate-400 uppercase tracking-wider font-bold block font-sans">Active Profile</span>
-                <p className="text-xs font-semibold text-slate-800 truncate leading-tight">{currentUser.name}</p>
-                <div className="text-[10px] text-blue-600 font-medium truncate mt-0.5">{currentUser.role}</div>
+            <div className="p-4 border-t border-slate-100 bg-slate-50/30 space-y-3 shrink-0">
+              <div className="space-y-0.5">
+                <span className="text-[9px] text-slate-400 uppercase tracking-[0.12em] font-semibold block">Signed in as</span>
+                <p className="text-[13px] font-semibold text-slate-800 truncate leading-tight">{currentUser.name}</p>
+                <div className="text-[11px] text-slate-500 font-medium truncate">{currentUser.role}</div>
               </div>
 
-              <div className="flex gap-2">
-                <button
-                  onClick={handleLogout}
-                  className="w-full py-2 border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-800 rounded-lg justify-center inline-flex items-center gap-1.5 cursor-pointer text-xs transition duration-150 font-medium shadow-2xs"
-                  title="Logout Session"
-                >
-                  <LogOut className="w-3.5 h-3.5 text-slate-400" />
-                  Lock Session
-                </button>
-              </div>
+              <button
+                onClick={handleLogout}
+                className="w-full py-1.5 border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 rounded-lg justify-center inline-flex items-center gap-1.5 cursor-pointer text-xs transition duration-150 font-medium"
+              >
+                <LogOut className="w-3.5 h-3.5 text-slate-400" />
+                Sign Out
+              </button>
             </div>
           </aside>
 
@@ -926,10 +921,10 @@ export default function App() {
           <main className="flex-1 flex flex-col min-w-0 bg-[#F8FAFC] overflow-y-auto">
             
             {/* TOP BAR ACTION BAR */}
-            <header className="px-8 py-4 bg-white border-b border-slate-200 flex items-center justify-between shrink-0 font-sans">
-              <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-[10px] font-mono text-slate-500 font-medium select-none">
-                <Database className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                <span>PrimeCare Outreach Node Active // 2026-06-03</span>
+            <header className="px-6 py-3 bg-white border-b border-slate-200 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1 text-[10px] font-mono text-slate-500 font-medium select-none">
+                <Database className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <span>PrimeCare Active</span>
               </div>
 
               <div className="flex items-center gap-4">
@@ -937,8 +932,8 @@ export default function App() {
                 <div className="relative">
                   <button
                     onClick={() => setNotificationsPopover(!notificationsPopover)}
-                    className="p-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-lg cursor-pointer transition relative"
-                    title="Real-time Operational Alerts"
+                    className="p-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-md cursor-pointer transition relative"
+                    title="Notifications"
                   >
                     <Bell className="w-4 h-4" />
                     {unreadNotifCount > 0 && (
@@ -950,9 +945,9 @@ export default function App() {
 
                   {/* Popover Feed block */}
                   {notificationsPopover && (
-                    <div className="absolute right-0 mt-2.5 w-72 bg-white rounded-xl shadow-md border border-slate-200 p-4 z-40 space-y-3 font-sans">
+                    <div className="absolute right-0 mt-2 w-72 bg-white rounded-lg shadow-lg border border-slate-200 p-4 z-40 space-y-3 animate-fade-in">
                       <div className="flex justify-between items-center pb-2 border-b border-slate-100">
-                        <strong className="text-slate-800 text-xs font-semibold">Workflow Alert Notifications</strong>
+                        <strong className="text-slate-800 text-xs font-semibold">Notifications</strong>
                         <button
                           onClick={() => {
                             setDb(prev => ({
@@ -984,9 +979,9 @@ export default function App() {
                   )}
                 </div>
 
-                <div className="hidden sm:flex flex-col text-right font-sans">
-                  <span className="text-xs font-semibold text-slate-800 leading-none">{currentUser.name}</span>
-                  <span className="text-[10px] text-slate-400 font-mono mt-0.5">{currentUser.role} Credentials</span>
+                <div className="hidden sm:flex flex-col text-right">
+                  <span className="text-[13px] font-semibold text-slate-800 leading-none">{currentUser.name}</span>
+                  <span className="text-[11px] text-slate-400 mt-0.5">{currentUser.role}</span>
                 </div>
               </div>
             </header>
@@ -1100,20 +1095,20 @@ export default function App() {
 
               {activeTab === 'audits' && perm.canViewAuditLogs && (
                 /* Module 11: Audits Logs Table */
-                <div className="space-y-4" id="auditing-auditlogs-root">
+                <div className="space-y-4 animate-fade-in" id="auditing-auditlogs-root">
                   <div>
-                    <h2 className="text-xl font-semibold text-slate-800 tracking-tight flex items-center gap-1.5">
-                      <History className="w-5 h-5 text-indigo-600 animate-pulse" />
-                      Hospital Regulatory Auditing Checklist
+                    <h2 className="text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                      <History className="w-5 h-5 text-slate-400" />
+                      Audit Trail
                     </h2>
-                    <p className="text-xs text-slate-400">Chronological list of all medical manipulations and role accesses for compliance review</p>
+                    <p className="text-xs text-slate-400 mt-0.5">Chronological record of all actions and role accesses</p>
                   </div>
 
-                  <div className="bg-white rounded-xl border border-slate-100 shadow-2xs overflow-hidden">
+                  <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
                     <div className="overflow-x-auto">
-                      <table className="w-full text-left text-xs border-collapse font-sans">
+                      <table className="w-full text-left text-xs border-collapse">
                         <thead>
-                          <tr className="bg-slate-50 border-b border-slate-100 text-slate-400 font-semibold text-3xs font-mono uppercase tracking-wider">
+                          <tr className="bg-slate-50 border-b border-slate-200">
                             <th className="py-3 px-4">Log Reference</th>
                             <th className="py-3 px-4">Timestamp</th>
                             <th className="py-3 px-4">Action / Event</th>
@@ -1148,18 +1143,17 @@ export default function App() {
 
               {activeTab === 'settings' && currentUser.role === 'Super Administrator' && (
                 /* Module 1: User Logins, locked accounts and settings */
-                <div className="space-y-6" id="system-configurations-root">
+                <div className="space-y-5 animate-fade-in" id="system-configurations-root">
                   <div>
-                    <h2 className="text-xl font-semibold text-slate-800 tracking-tight">System Access Controls</h2>
-                    <p className="text-xs text-slate-400">Configure corporate user roles and safety thresholds</p>
+                    <h2 className="text-lg font-bold text-slate-900 tracking-tight">Settings</h2>
+                    <p className="text-xs text-slate-400 mt-0.5">Manage user roles and system configuration</p>
                   </div>
 
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Security credentials lists */}
-                    <div className="bg-white p-5 rounded-xl border border-slate-100 shadow-2xs space-y-4 col-span-2">
-                      <h3 className="font-semibold text-slate-800 text-sm border-b border-slate-50 pb-2">Active Hospital Associates</h3>
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                    <div className="bg-white p-5 rounded-xl border border-slate-200 space-y-4 col-span-2">
+                      <h3 className="font-semibold text-slate-800 text-sm border-b border-slate-100 pb-2">Team Members</h3>
                       
-                      <div className="space-y-3 font-sans text-xs">
+                      <div className="space-y-2.5 text-xs">
                         {db.users.map(u => (
                           <div key={u.id} className="p-3 border border-slate-105 rounded-xl bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div>
@@ -1194,8 +1188,8 @@ export default function App() {
                     </div>
 
                     {/* Operational system configurations */}
-                    <div className="bg-white p-5 rounded-xl border border-slate-100 shadow-2xs space-y-4 h-fit font-sans text-xs">
-                      <h3 className="font-semibold text-slate-800 text-sm border-b border-slate-50 pb-2">System Guardrails</h3>
+                    <div className="bg-white p-5 rounded-xl border border-slate-200 space-y-4 h-fit text-xs">
+                      <h3 className="font-semibold text-slate-800 text-sm border-b border-slate-100 pb-2">System Configuration</h3>
                       <div className="space-y-4">
                         <div className="space-y-1">
                           <label className="text-slate-500 font-semibold block">HIPAA Anonymity Level</label>

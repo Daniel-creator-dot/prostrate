@@ -102,17 +102,17 @@ export default function DashboardAnalytics({
   return (
     <div className="space-y-6" id="dashboard-analytics-root">
       {/* Filters Head */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 bg-white rounded-2xl border border-slate-200/80 shadow-2xs">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 bg-white rounded-xl border border-slate-200 shadow-sm">
         <div>
-          <h2 className="text-xl font-bold font-display text-slate-900 tracking-tight">Executive Clinical Dashboard</h2>
-          <p className="text-xs text-slate-400 mt-0.5">Primary Oversight Access Logged As: <span className="font-mono text-slate-500 font-medium">{userRole}</span></p>
+          <h2 className="text-xl font-bold font-display text-slate-900 tracking-tight">Clinical Dashboard</h2>
+          <p className="text-xs text-slate-400 mt-0.5">Logged in as: <span className="font-mono text-slate-500 font-medium">{userRole}</span></p>
         </div>
         <div className="flex items-center gap-3">
-          <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest font-sans">Campaign Context:</label>
+          <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Campaign:</label>
           <select
             value={selectedCampaignId}
             onChange={(e) => setSelectedCampaignId(e.target.value)}
-            className="text-xs font-semibold border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-700 outline-hidden focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition shadow-2xs"
+            className="text-xs font-semibold border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-700 outline-hidden focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition"
           >
             <option value="all">All Screening Campaigns</option>
             {campaigns.map(c => (
@@ -125,8 +125,8 @@ export default function DashboardAnalytics({
       {/* Bento Grid Stats */}
       {userRole !== 'Corporate Viewer' ? (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-6 bg-white rounded-2xl border border-slate-200/80 shadow-2xs hover:border-slate-300 transition duration-150 flex items-start justify-between min-h-28">
-            <div className="space-y-1 font-sans">
+          <div className="p-6 bg-white rounded-xl border border-slate-200 shadow-sm hover:border-slate-300 transition duration-150 flex items-start justify-between min-h-28">
+            <div className="space-y-1">
               <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase">Active Clients</span>
               <p className="text-3xl font-bold text-slate-900 tracking-tight font-display">{totalClients}</p>
               <span className="text-[11px] text-slate-400 block">Hospital corporate partners</span>
@@ -136,32 +136,32 @@ export default function DashboardAnalytics({
             </div>
           </div>
 
-          <div className="p-6 bg-white rounded-2xl border border-slate-200/80 shadow-2xs hover:border-slate-300 transition duration-150 flex items-start justify-between min-h-28">
-            <div className="space-y-1 font-sans">
+          <div className="p-6 bg-white rounded-xl border border-slate-200 shadow-sm hover:border-slate-300 transition duration-150 flex items-start justify-between min-h-28">
+            <div className="space-y-1">
               <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase">Active Campaigns</span>
               <p className="text-3xl font-bold text-slate-900 tracking-tight font-display">{activeCampaigns}</p>
               <span className="text-[11px] text-emerald-600 block font-medium">Scheduled & running</span>
             </div>
             <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
-              <Activity className="w-5 h-5 animate-pulse" />
+              <Activity className="w-5 h-5" />
             </div>
           </div>
 
-          <div className="p-6 bg-white rounded-2xl border border-slate-200/80 shadow-2xs hover:border-slate-300 transition duration-150 flex items-start justify-between min-h-28">
-            <div className="space-y-1 font-sans">
+          <div className="p-6 bg-white rounded-xl border border-slate-200 shadow-sm hover:border-slate-300 transition duration-150 flex items-start justify-between min-h-28">
+            <div className="space-y-1">
               <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase">Total Screened</span>
               <p className="text-3xl font-bold text-slate-900 tracking-tight font-display">
                 {filteredParticipants.length}
               </p>
-              <span className="text-[11px] text-slate-400 block font-sans">Staff members registered</span>
+              <span className="text-[11px] text-slate-400 block">Staff members registered</span>
             </div>
             <div className="p-2.5 bg-sky-50 text-sky-600 rounded-xl">
               <UserCheck className="w-5 h-5" />
             </div>
           </div>
 
-          <div className="p-6 bg-white rounded-2xl border border-slate-200/80 shadow-2xs hover:border-slate-300 transition duration-150 flex items-start justify-between min-h-28">
-            <div className="space-y-1 font-sans">
+          <div className="p-6 bg-white rounded-xl border border-slate-200 shadow-sm hover:border-slate-300 transition duration-150 flex items-start justify-between min-h-28">
+            <div className="space-y-1">
               <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase">Clinical Reviews</span>
               <p className="text-3xl font-bold text-amber-600 tracking-tight font-display">{pendingReviews}</p>
               <span className="text-[11px] text-amber-500 block font-medium">Awaiting board signatures</span>
@@ -174,22 +174,22 @@ export default function DashboardAnalytics({
       ) : (
         /* Reduced Dashboard for Corporate Viewer to protect privacy */
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="p-6 bg-white rounded-2xl border border-slate-200/80 shadow-2xs flex items-center justify-between">
+          <div className="p-6 bg-white rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
             <div>
-              <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase">Corporate Campaign Scope</span>
+              <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase">Campaign Scope</span>
               <p className="text-lg font-bold text-slate-900 tracking-tight mt-1 font-display">
                 {selectedCampaignId === 'all' ? 'All Active Corporate Campaigns' : campaigns.find(c => c.id === selectedCampaignId)?.name}
               </p>
-              <span className="text-xs text-slate-400 font-sans mt-1 block">Aggregated metrics view restricted for privacy</span>
+              <span className="text-xs text-slate-400 mt-1 block">Aggregated metrics (privacy-restricted)</span>
             </div>
             <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
               <FileCheck className="w-6 h-6" />
             </div>
           </div>
 
-          <div className="p-6 bg-white rounded-2xl border border-slate-200/80 shadow-2xs flex items-center justify-between">
+          <div className="p-6 bg-white rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
             <div>
-              <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase">Total Employee Registrants</span>
+              <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase">Registrants</span>
               <p className="text-3xl font-bold text-slate-900 tracking-tight font-display mt-1">{filteredParticipants.length}</p>
               <span className="text-xs text-slate-400 block mt-1">Samples drawn / in execution</span>
             </div>
@@ -198,13 +198,13 @@ export default function DashboardAnalytics({
             </div>
           </div>
 
-          <div className="p-6 bg-white rounded-2xl border border-slate-200/80 shadow-2xs flex items-center justify-between">
+          <div className="p-6 bg-white rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
             <div>
               <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase">Compliance Status</span>
               <div className="mt-2 text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-150 px-2.5 py-1 rounded-full font-mono inline-flex items-center">
                 ● HIPAA Compliant Secure
               </div>
-              <p className="text-[11px] text-slate-400 mt-1.5 font-sans">Individual clinical traces sanitized</p>
+              <p className="text-[11px] text-slate-400 mt-1.5">Individual clinical traces sanitized</p>
             </div>
             <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
               <Smile className="w-6 h-6" />
@@ -217,13 +217,13 @@ export default function DashboardAnalytics({
       {userRole !== 'Corporate Viewer' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Medical Status Card - Circular Ring or Percentage bars */}
-          <div className="p-6 bg-white rounded-2xl border border-slate-200/80 shadow-2xs space-y-5">
+          <div className="p-6 bg-white rounded-xl border border-slate-200 shadow-sm space-y-5">
             <div>
-              <h3 className="text-xs font-bold font-sans text-slate-400 uppercase tracking-widest">PSA Ranges Distribution</h3>
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">PSA Distribution</h3>
               <p className="text-xs text-slate-400 mt-0.5">Out of {totalClassified} completed tests</p>
             </div>
 
-            <div className="space-y-4 pt-1 font-sans">
+            <div className="space-y-4 pt-1">
               <div className="relative">
                 <div className="flex mb-1.5 items-center justify-between">
                   <div>
@@ -281,7 +281,7 @@ export default function DashboardAnalytics({
               {pendingTests > 0 && (
                 <div className="mt-4 p-3 bg-blue-50/50 border border-blue-105 rounded-xl flex items-center gap-2.5">
                   <Clock className="w-4 h-4 text-blue-500 shrink-0" />
-                  <span className="text-xs text-blue-800 font-sans leading-relaxed">
+                  <span className="text-xs text-blue-800 leading-relaxed">
                     <strong>{pendingTests}</strong> pipeline result(s) are actively awaiting evaluation inside the laboratory assays.
                   </span>
                 </div>
@@ -290,9 +290,9 @@ export default function DashboardAnalytics({
           </div>
 
           {/* SVG Campaign Target vs Enrolled bar diagram */}
-          <div className="p-6 bg-white rounded-2xl border border-slate-200/80 shadow-2xs space-y-4 lg:col-span-2">
+          <div className="p-6 bg-white rounded-xl border border-slate-200 shadow-sm space-y-4 lg:col-span-2">
             <div>
-              <h3 className="text-xs font-bold font-sans text-slate-400 uppercase tracking-widest">Outreach Campaigns (Enrollment Rates)</h3>
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Campaign Enrollment</h3>
               <p className="text-xs text-slate-400 mt-0.5">Comparing target size versus actual registrations</p>
             </div>
 
@@ -347,7 +347,7 @@ export default function DashboardAnalytics({
                       <text
                         x={x + 20}
                         y={chartHeight - 20}
-                        className="text-[10px] font-sans fill-slate-500 font-medium"
+                        className="text-[10px] fill-slate-500 font-medium"
                         textAnchor="middle"
                       >
                         {stat.name}
@@ -362,9 +362,9 @@ export default function DashboardAnalytics({
                 {/* Legend */}
                 <g transform={`translate(${chartWidth - 210}, 10)`}>
                   <rect x="0" y="0" width="10" height="10" fill="#e2e8f0" rx="2" />
-                  <text x="16" y="9" className="text-[10px] font-sans fill-slate-500 font-medium">Target Size</text>
+                  <text x="16" y="9" className="text-[10px] fill-slate-500 font-medium">Target Size</text>
                   <rect x="85" y="0" width="10" height="10" fill="#3b82f6" rx="2" />
-                  <text x="101" y="9" className="text-[10px] font-sans fill-slate-500 font-medium">Screened</text>
+                  <text x="101" y="9" className="text-[10px] fill-slate-500 font-medium">Screened</text>
                 </g>
               </svg>
             </div>
@@ -375,9 +375,9 @@ export default function DashboardAnalytics({
       {/* Corporate Viewer Aggregated Charts */}
       {userRole === 'Corporate Viewer' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="p-6 bg-white rounded-2xl border border-slate-200/80 shadow-2xs space-y-4">
+          <div className="p-6 bg-white rounded-xl border border-slate-200 shadow-sm space-y-4">
             <div>
-              <h3 className="text-xs font-bold font-sans text-slate-400 uppercase tracking-widest">Aggregated PSA Health Summary</h3>
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">PSA Health Summary</h3>
               <p className="text-xs text-slate-400">Normal vs Flagged Screening Outliers (Anonymized)</p>
             </div>
 
@@ -404,14 +404,14 @@ export default function DashboardAnalytics({
             </div>
           </div>
 
-          <div className="p-6 bg-white rounded-2xl border border-slate-200/80 shadow-2xs space-y-4">
+          <div className="p-6 bg-white rounded-xl border border-slate-200 shadow-sm space-y-4">
             <div>
-              <h3 className="text-xs font-bold font-sans text-slate-400 uppercase tracking-widest">Campaign Velocity Statistics</h3>
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Campaign Statistics</h3>
               <p className="text-xs text-slate-400">Total screened participants and campaign completions</p>
             </div>
             
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-slate-50 border border-slate-200 p-5 rounded-xl font-sans">
+              <div className="bg-slate-50 border border-slate-200 p-5 rounded-xl">
                 <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase">Fulfillment Rate</span>
                 {campaignStats.length > 0 ? (
                   <p className="text-3xl font-bold font-display text-slate-900 mt-1">
@@ -424,7 +424,7 @@ export default function DashboardAnalytics({
                 <span className="text-[11px] text-slate-400 block mt-1">Of target population reached</span>
               </div>
 
-              <div className="bg-slate-50 border border-slate-200 p-5 rounded-xl font-sans">
+              <div className="bg-slate-50 border border-slate-200 p-5 rounded-xl">
                 <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase">Active Campaigns</span>
                 <p className="text-3xl font-bold font-display text-emerald-600 mt-1">
                   {campaigns.filter(c => c.status === 'In-Progress').length}
@@ -438,18 +438,18 @@ export default function DashboardAnalytics({
 
       {/* Finance Analytics Section for authorized roles */}
       {userRole !== 'Corporate Viewer' && (userRole === 'Accounts Officer' || userRole === 'Super Administrator' || userRole === 'Administrator') && (
-        <div className="p-6 bg-white rounded-2xl border border-slate-200/80 shadow-2xs space-y-4">
+        <div className="p-6 bg-white rounded-xl border border-slate-200 shadow-sm space-y-4">
           <div>
-            <h3 className="text-xs font-bold font-sans text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
               <DollarSign className="w-4 h-4 text-emerald-600" />
-              Corporate Revenue Operations Tracker
+              Revenue Tracker
             </h3>
             <p className="text-xs text-slate-400 mt-0.5">Tracking paid corporate revenue versus overdue values</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
             {/* SVG Interactive Revenue Horizontal Bar */}
-            <div className="space-y-4 font-sans">
+            <div className="space-y-4">
               <div className="space-y-1">
                 <div className="flex justify-between text-xs font-semibold text-slate-600">
                   <span>Invoiced Revenue Realized</span>
@@ -472,7 +472,7 @@ export default function DashboardAnalytics({
                 />
               </div>
 
-              <div className="flex justify-between items-center text-[10px] font-sans font-medium text-slate-400">
+              <div className="flex justify-between items-center text-[10px] font-medium text-slate-400">
                 <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-emerald-500 inline-block" /> Paid (Settled)</span>
                 <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-rose-400 inline-block" /> Unpaid / Outstanding</span>
               </div>
@@ -481,8 +481,8 @@ export default function DashboardAnalytics({
             <div className="text-xs text-slate-500 bg-slate-50 p-5 rounded-xl space-y-2 border border-slate-200">
               <span className="font-semibold text-slate-800 block">Financial Performance Audit:</span>
               <p>• Total corporate billings issued: <strong className="text-slate-800 font-mono">${(totalRevenue + totalOutstanding).toFixed(2)}</strong></p>
-              <p>• Fully paid invoices: <strong className="text-emerald-700 font-sans">{filteredInvoices.filter(i => i.paymentStatus === 'Fully Paid').length} contracts</strong></p>
-              <p>• Outstandings awaiting corporate clearance: <strong className="text-rose-600 font-sans">{filteredInvoices.filter(i => i.paymentStatus === 'Unpaid' || i.paymentStatus === 'Partially Paid').length} invoices</strong></p>
+              <p>• Fully paid invoices: <strong className="text-emerald-700">{filteredInvoices.filter(i => i.paymentStatus === 'Fully Paid').length} contracts</strong></p>
+              <p>• Outstanding: <strong className="text-rose-600">{filteredInvoices.filter(i => i.paymentStatus === 'Unpaid' || i.paymentStatus === 'Partially Paid').length} invoices</strong></p>
             </div>
           </div>
         </div>

@@ -154,7 +154,7 @@ export default function ClientManagement({
         {canEdit && (
           <button
             onClick={() => { resetForm(); setShowModal(true); }}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold tracking-wide uppercase shadow-2xs transition duration-150"
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold tracking-wide uppercase transition duration-150"
           >
             <Plus className="w-4 h-4" />
             Onboard Client
@@ -163,7 +163,7 @@ export default function ClientManagement({
       </div>
 
       {/* Filtering Control Bar */}
-      <div className="flex flex-col sm:flex-row gap-3 items-center bg-white p-4 rounded-xl border border-slate-200/80 shadow-2xs">
+      <div className="flex flex-col sm:flex-row gap-3 items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
         <div className="relative w-full sm:max-w-md">
           <Search className="absolute left-3 top-2.5 h-4.5 w-4.5 text-slate-400" />
           <input
@@ -199,7 +199,7 @@ export default function ClientManagement({
             return (
               <div
                 key={c.id}
-                className="bg-white rounded-2xl border border-slate-200/84 shadow-2xs hover:border-slate-300 hover:shadow-xs transition duration-150 p-6 flex flex-col justify-between"
+                className="bg-white rounded-xl border border-slate-200 hover:border-slate-300 hover:shadow-xs transition duration-150 p-6 flex flex-col justify-between"
               >
                 <div>
                   {/* Status Banner */}
@@ -227,7 +227,7 @@ export default function ClientManagement({
                   </div>
 
                   {/* Body Specs */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-2 text-xs text-slate-500 mb-4 font-sans">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-2 text-xs text-slate-500 mb-4">
                     <div className="flex items-center gap-2.5">
                       <User className="w-4 h-4 text-slate-400 shrink-0" />
                       <span className="font-medium text-slate-700">{c.contactPerson}</span>
@@ -249,15 +249,15 @@ export default function ClientManagement({
                   {/* Metadata Indicators */}
                   <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2 mb-4">
                     <div className="flex justify-between items-center text-xs">
-                      <span className="text-slate-400 font-sans font-medium">Corporate Population size:</span>
+                      <span className="text-slate-400 font-medium">Staff count:</span>
                       <strong className="text-slate-700 font-mono">{c.staffPopulation} employees</strong>
                     </div>
                     <div className="flex justify-between items-center text-xs">
-                      <span className="text-slate-400 font-sans font-medium">Screening Rate Package:</span>
-                      <strong className="text-blue-700 font-sans font-semibold">{clientPkg ? clientPkg.name : 'Unassigned'}</strong>
+                      <span className="text-slate-400 font-medium">Package:</span>
+                      <strong className="text-blue-700 font-semibold">{clientPkg ? clientPkg.name : 'Unassigned'}</strong>
                     </div>
                     {c.notes && (
-                      <p className="text-[11px] text-slate-400 italic font-sans border-t border-slate-200 pt-2 mt-1.5 leading-relaxed">
+                      <p className="text-[11px] text-slate-400 italic border-t border-slate-200 pt-2 mt-1.5 leading-relaxed">
                         &ldquo;{c.notes}&rdquo;
                       </p>
                     )}
@@ -265,7 +265,7 @@ export default function ClientManagement({
                 </div>
 
                 {/* Campaign engagements tracker and actions */}
-                <div className="border-t border-slate-100 pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 font-sans">
+                <div className="border-t border-slate-100 pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="text-[11px] text-slate-400 flex items-center gap-1">
                     <Briefcase className="w-3.5 h-3.5 text-slate-400" />
                     <span>Active engagements: <strong className="text-slate-600 font-mono font-medium">{clientCampaigns.length}</strong> campaigns</span>
@@ -310,7 +310,7 @@ export default function ClientManagement({
             );
           })
         ) : (
-          <div className="p-12 text-center text-slate-400 border border-dashed border-slate-200 rounded-2xl bg-white xl:col-span-2">
+          <div className="p-12 text-center text-slate-400 border border-dashed border-slate-200 rounded-xl bg-white xl:col-span-2">
             No matching corporate client profiles found.
           </div>
         )}
@@ -319,7 +319,7 @@ export default function ClientManagement({
       {/* Modal Profile Editor Form */}
       {showModal && (
         <div className="fixed inset-0 bg-slate-900/30 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-xl border border-slate-200/80 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-slate-100 flex items-center justify-between">
               <h3 className="font-bold font-display text-slate-900 tracking-tight text-lg">
                 {editingClient ? 'Edit Corporate Profile' : 'Onboard New Corporate Client'}
@@ -332,10 +332,10 @@ export default function ClientManagement({
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs font-sans">
+            <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px] font-sans">Corporate Legal Name *</label>
+                  <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px]">Company Name *</label>
                   <input
                     type="text"
                     required
@@ -347,7 +347,7 @@ export default function ClientManagement({
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px] font-sans">Industry Segment *</label>
+                  <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px]">Industry *</label>
                   <input
                     type="text"
                     required
@@ -361,7 +361,7 @@ export default function ClientManagement({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px] font-sans">Contact Representative *</label>
+                  <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px]">Contact Person *</label>
                   <input
                     type="text"
                     required
@@ -373,7 +373,7 @@ export default function ClientManagement({
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px] font-sans">Phone Number</label>
+                  <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px]">Phone</label>
                   <input
                     type="tel"
                     placeholder="e.g. +1-555-001-9281"
@@ -385,7 +385,7 @@ export default function ClientManagement({
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px] font-sans">Corporate Email Address *</label>
+                <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px]">Email *</label>
                 <input
                   type="email"
                   required
@@ -397,7 +397,7 @@ export default function ClientManagement({
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px] font-sans">Registered HQ Address</label>
+                <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px]">Address</label>
                 <textarea
                   rows={2}
                   placeholder="Street suite details, Zip Code and State"
@@ -409,7 +409,7 @@ export default function ClientManagement({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px] font-sans">Staff Population (Approx.)</label>
+                  <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px]">Staff Count</label>
                   <input
                     type="number"
                     min={1}
@@ -420,7 +420,7 @@ export default function ClientManagement({
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px] font-sans">Assigned Screening Package</label>
+                  <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px]">Package</label>
                   <select
                     value={packageId}
                     onChange={(e) => setPackageId(e.target.value)}
@@ -436,7 +436,7 @@ export default function ClientManagement({
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px] font-sans block mb-1">Contract Validation Status</label>
+                <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px] block mb-1">Contract Status</label>
                 <div className="flex gap-4">
                   {(['Active', 'Pending', 'Expired', 'Suspended'] as const).map(status => (
                     <label key={status} className="inline-flex items-center gap-1.5 cursor-pointer font-semibold text-slate-700">
@@ -455,7 +455,7 @@ export default function ClientManagement({
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px] font-sans">Operational / Contract Notes</label>
+                <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px]">Notes</label>
                 <textarea
                   rows={2}
                   placeholder="Describe operational constraints, scheduling preferences or historical review patterns..."
@@ -475,7 +475,7 @@ export default function ClientManagement({
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 shadow-3xs"
+                  className="px-4 py-2 text-xs bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700"
                 >
                   {editingClient ? 'Submit Updates' : 'Confirm Onboard'}
                 </button>

@@ -107,7 +107,7 @@ export default function ReportingSuite({
   return (
     <div className="space-y-6" id="reporting-suite-root">
       {/* Top Banner Control options */}
-      <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs animate-fade-in">
+      <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 bg-white p-5 rounded-xl border border-slate-200 shadow-sm animate-fade-in">
         <div>
           <h2 className="text-xl font-bold text-slate-950 font-display tracking-tight flex items-center gap-2">
             <FileText className="w-5 h-5 text-indigo-600" />
@@ -120,7 +120,7 @@ export default function ReportingSuite({
         <div className="flex flex-wrap gap-2.5">
           <button
             onClick={() => handleExport('PDF')}
-            className="px-3.5 py-2 bg-slate-900 hover:bg-slate-950 text-white rounded-xl text-xs font-bold inline-flex items-center gap-1.5 transition uppercase tracking-wider cursor-pointer shadow-3xs"
+            className="px-3.5 py-2 bg-slate-900 hover:bg-slate-950 text-white rounded-xl text-xs font-bold inline-flex items-center gap-1.5 transition uppercase tracking-wider cursor-pointer"
           >
             <Download className="w-3.5 h-3.5 text-slate-300" />
             Export Certified PDF
@@ -134,7 +134,7 @@ export default function ReportingSuite({
           </button>
           <button
             onClick={() => handleExport('Print')}
-            className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold inline-flex items-center gap-1.5 transition uppercase tracking-wider cursor-pointer shadow-3xs"
+            className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold inline-flex items-center gap-1.5 transition uppercase tracking-wider cursor-pointer"
           >
             <Printer className="w-3.5 h-3.5" />
             Render Print Layout
@@ -144,7 +144,7 @@ export default function ReportingSuite({
 
       {/* Export status notifier toast */}
       {exportMessage && (
-        <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-2xl text-xs text-indigo-800 font-semibold animate-pulse flex items-center gap-2.5 shadow-2xs font-sans">
+        <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-xl text-xs text-indigo-800 font-semibold flex items-center gap-2.5">
           <Activity className="w-4 h-4 text-indigo-500 animate-spin" />
           <span>{exportMessage}</span>
         </div>
@@ -155,7 +155,7 @@ export default function ReportingSuite({
         {userRole !== 'Corporate Viewer' && (
           <button
             onClick={() => setActiveReportTab('individual')}
-            className={`px-4 py-2.5 text-xs font-bold font-sans whitespace-nowrap border-b-2 transition uppercase tracking-widest ${
+            className={`px-4 py-2.5 text-xs font-bold whitespace-nowrap border-b-2 transition uppercase tracking-widest ${
               activeReportTab === 'individual'
                 ? 'border-indigo-600 text-indigo-700'
                 : 'border-transparent text-slate-400 hover:text-slate-800'
@@ -167,7 +167,7 @@ export default function ReportingSuite({
 
         <button
           onClick={() => setActiveReportTab('corporate')}
-          className={`px-4 py-2.5 text-xs font-bold font-sans whitespace-nowrap border-b-2 transition uppercase tracking-widest ${
+          className={`px-4 py-2.5 text-xs font-bold whitespace-nowrap border-b-2 transition uppercase tracking-widest ${
             activeReportTab === 'corporate'
               ? 'border-indigo-600 text-indigo-700'
               : 'border-transparent text-slate-400 hover:text-slate-800'
@@ -180,7 +180,7 @@ export default function ReportingSuite({
           <>
             <button
               onClick={() => setActiveReportTab('followup')}
-              className={`px-4 py-2.5 text-xs font-bold font-sans whitespace-nowrap border-b-2 transition uppercase tracking-widest ${
+              className={`px-4 py-2.5 text-xs font-bold whitespace-nowrap border-b-2 transition uppercase tracking-widest ${
                 activeReportTab === 'followup'
                   ? 'border-indigo-600 text-indigo-700'
                   : 'border-transparent text-slate-400 hover:text-slate-800'
@@ -191,7 +191,7 @@ export default function ReportingSuite({
 
             <button
               onClick={() => setActiveReportTab('billing')}
-              className={`px-4 py-2.5 text-xs font-bold font-sans whitespace-nowrap border-b-2 transition uppercase tracking-widest ${
+              className={`px-4 py-2.5 text-xs font-bold whitespace-nowrap border-b-2 transition uppercase tracking-widest ${
                 activeReportTab === 'billing'
                   ? 'border-indigo-600 text-indigo-700'
                   : 'border-transparent text-slate-400 hover:text-slate-800'
@@ -207,12 +207,12 @@ export default function ReportingSuite({
       {activeReportTab === 'individual' && userRole !== 'Corporate Viewer' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in">
           {/* Picker Panel */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200/85 shadow-2xs space-y-4 h-fit">
-            <h4 className="font-bold font-display text-slate-900 text-sm tracking-tight border-b border-slate-100 pb-3">
+          <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4 h-fit">
+            <h4 className="font-bold font-display text-slate-900 text-sm tracking-tight border-b border-slate-200 pb-3">
               Select Patient Record
             </h4>
             
-            <div className="space-y-1.5 font-sans">
+            <div className="space-y-1.5">
               <label className="text-slate-400 font-bold uppercase tracking-wider text-[10px] block">Search Resident Registrant:</label>
               <select
                 value={selectedParticipantId}
@@ -227,18 +227,18 @@ export default function ReportingSuite({
               </select>
             </div>
 
-            <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-3xs leading-relaxed text-slate-500 space-y-1.5 font-mono">
+            <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-[10px] leading-relaxed text-slate-500 space-y-1.5 font-mono">
               <span className="font-bold text-slate-700 block uppercase tracking-wider">HIPAA Compliance Rules:</span>
               <p>Certified individual slips must be kept strictly confidential. Access is logged in the system audits record on every lookup attempt.</p>
             </div>
           </div>
 
           {/* Printable Slip Preview Container */}
-          <div className="bg-white p-6 md:p-8 rounded-2xl border border-slate-200/85 shadow-2xs col-span-2 space-y-6" id="individual-slip-printable">
+          <div className="bg-white p-6 md:p-8 rounded-xl border border-slate-200 shadow-sm col-span-2 space-y-6" id="individual-slip-printable">
             {/* Slip Header */}
-            <div className="flex justify-between items-start gap-4 pb-6 border-b border-slate-200 font-sans">
+            <div className="flex justify-between items-start gap-4 pb-6 border-b border-slate-200">
               <div>
-                <h1 className="text-xl font-extrabold text-blue-900 tracking-tight leading-none uppercase">US PrimeCare Outreach</h1>
+                <h1 className="text-xl font-bold text-blue-900 tracking-tight leading-none uppercase">US PrimeCare Outreach</h1>
                 <span className="text-[10px] text-slate-450 block font-mono font-bold tracking-widest mt-2">CERTIFIED LABORATORY CLINICAL EXAMINATION REPORT</span>
               </div>
               <div className="text-right flex flex-col font-mono text-[9px] text-slate-450 uppercase tracking-wider">
@@ -250,7 +250,7 @@ export default function ReportingSuite({
             {selectedParticipant ? (
               <>
                 {/* Patient Demographics Matrix */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pb-5 border-b border-slate-200 font-sans text-xs">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pb-5 border-b border-slate-200 text-xs">
                   <div>
                     <span className="text-slate-400 font-bold uppercase tracking-widest text-[9px] block mb-0.5">Patient Name</span>
                     <strong className="text-slate-900 font-bold leading-none">{selectedParticipant.fullName}</strong>
@@ -262,7 +262,7 @@ export default function ReportingSuite({
                   <div>
                     <span className="text-slate-400 font-bold uppercase tracking-widest text-[9px] block mb-0.5">Birth Date / Age</span>
                     <strong className="text-slate-800 font-mono leading-none block">
-                      {selectedParticipant.dob} <span className="text-slate-400 font-sans text-[10px] font-normal">({selectedParticipant.age} yrs)</span>
+                      {selectedParticipant.dob} <span className="text-slate-400 text-[10px] font-normal">({selectedParticipant.age} yrs)</span>
                     </strong>
                   </div>
                   <div>
@@ -272,13 +272,13 @@ export default function ReportingSuite({
                 </div>
 
                 {/* Laboratory Assay Findings */}
-                <div className="space-y-4 py-2 font-sans">
-                  <h3 className="font-bold text-slate-705 text-[10px] uppercase tracking-widest font-sans">
+                <div className="space-y-4 py-2">
+                  <h3 className="font-bold text-slate-705 text-[10px] uppercase tracking-widest">
                     BIOCHEMICAL SPECS ANALYTE PROFILE
                   </h3>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-                    <div className="p-5 bg-slate-50/50 rounded-2xl border border-slate-200 flex flex-col justify-center text-center">
+                    <div className="p-5 bg-slate-50/50 rounded-xl border border-slate-200 flex flex-col justify-center text-center">
                       <span className="text-[10px] text-slate-400 uppercase tracking-widest font-mono">Enzyme-Immunoassay PSA</span>
                       <strong className="text-2xl text-slate-900 font-mono mt-1 font-bold">
                         {participantTest?.psaValue !== null && participantTest?.psaValue !== undefined
@@ -287,7 +287,7 @@ export default function ReportingSuite({
                       </strong>
                     </div>
 
-                    <div className="p-5 bg-slate-50/50 rounded-2xl border border-slate-200 flex flex-col justify-center text-center">
+                    <div className="p-5 bg-slate-50/50 rounded-xl border border-slate-200 flex flex-col justify-center text-center">
                       <span className="text-[10px] text-slate-400 uppercase tracking-widest font-mono">Clinical Status Marker</span>
                       <strong className={`text-base font-mono mt-2 uppercase font-bold ${
                         participantTest?.classification === 'Normal' ? 'text-emerald-700' :
@@ -298,7 +298,7 @@ export default function ReportingSuite({
                       </strong>
                     </div>
 
-                    <div className="p-4 bg-slate-50/50 rounded-2xl border border-slate-200 text-[10px] leading-relaxed text-slate-500 space-y-1 font-mono font-medium">
+                    <div className="p-4 bg-slate-50/50 rounded-xl border border-slate-200 text-[10px] leading-relaxed text-slate-500 space-y-1 font-mono font-medium">
                       <span>• Sample ID: {participantTest?.sampleId || 'N/A'}</span>
                       <span>• Logistics Campaign: {participantCampaign?.name || 'N/A'}</span>
                     </div>
@@ -306,14 +306,14 @@ export default function ReportingSuite({
                 </div>
 
                 {/* Specialist Clinical Review Observes */}
-                <div className="p-5 bg-slate-50/50 rounded-2xl border border-slate-200 space-y-3.5 font-sans">
-                  <h4 className="font-bold text-slate-700 text-[10px] uppercase tracking-widest font-sans flex items-center gap-1.5">
+                <div className="p-5 bg-slate-50/50 rounded-xl border border-slate-200 space-y-3.5">
+                  <h4 className="font-bold text-slate-700 text-[10px] uppercase tracking-widest flex items-center gap-1.5">
                     <Stethoscope className="w-4 h-4 text-blue-600" />
                     Specialized Medical Practitioner Assessment
                   </h4>
 
                   {testReview ? (
-                    <div className="space-y-4 text-xs leading-relaxed text-slate-650 font-sans">
+                    <div className="space-y-4 text-xs leading-relaxed text-slate-650">
                       <div>
                         <span className="text-slate-400 font-bold tracking-wider text-[9px] block mb-1 uppercase">Chief Clinical Observations:</span>
                         <p className="italic bg-white p-3.5 rounded-xl border border-slate-200 text-slate-700 font-semibold">&ldquo;{testReview.clinicalObservations}&rdquo;</p>
@@ -326,11 +326,11 @@ export default function ReportingSuite({
                       <div className="grid grid-cols-2 gap-4 text-2xs font-mono border-t border-slate-200 pt-3.5 font-bold">
                         <div>
                           <span className="text-slate-400">Repeat Blood extraction recommended:</span>
-                          <span className="text-slate-800 ml-1.5 uppercase font-extrabold">{testReview.requestRepeatTest ? 'YES (CHAMPIONED)' : 'NO'}</span>
+                          <span className="text-slate-800 ml-1.5 uppercase font-bold">{testReview.requestRepeatTest ? 'YES (CHAMPIONED)' : 'NO'}</span>
                         </div>
                         <div>
                           <span className="text-slate-400">Referral Oncology Clinic:</span>
-                          <span className="text-slate-800 ml-1.5 font-sans">{testReview.scheduleReferral}</span>
+                          <span className="text-slate-800 ml-1.5">{testReview.scheduleReferral}</span>
                         </div>
                       </div>
                     </div>
@@ -344,15 +344,15 @@ export default function ReportingSuite({
                 </div>
 
                 {/* Sign off and regulatory stamps */}
-                <div className="flex justify-between items-end pt-6 border-t border-slate-200 text-xs leading-relaxed font-sans">
-                  <div className="text-3xs text-slate-400 font-sans space-y-0.5 font-bold uppercase tracking-wider">
+                <div className="flex justify-between items-end pt-6 border-t border-slate-200 text-xs leading-relaxed">
+                  <div className="text-[10px] text-slate-400 space-y-0.5 font-bold uppercase tracking-wider">
                     <p>PrimeCare Hospital Outreach Diagnostics Center</p>
                     <p>CLIA Laboratory Certificate: #993D10A21</p>
                     <p className="font-mono text-indigo-500">HIPAA Redaction Standard Enforced</p>
                   </div>
 
-                  <div className="text-center font-sans space-y-1">
-                    <div className="border-b border-slate-350 w-44 mx-auto py-1 font-mono text-[11px] text-blue-700 font-extrabold italic select-none">
+                  <div className="text-center space-y-1">
+                    <div className="border-b border-slate-350 w-44 mx-auto py-1 font-mono text-[11px] text-blue-700 font-bold italic select-none">
                       Dr. Robert Chen, MD
                     </div>
                     <span className="text-[10px] text-slate-400 block font-bold uppercase tracking-widest">Specialist Clinician, Urology Services</span>
@@ -360,7 +360,7 @@ export default function ReportingSuite({
                 </div>
               </>
             ) : (
-              <p className="text-center py-6 text-slate-400 font-bold uppercase font-sans animate-pulse">Loading screening metrics data...</p>
+              <p className="text-center py-6 text-slate-400 font-bold uppercase animate-pulse">Loading screening metrics data...</p>
             )}
           </div>
         </div>
@@ -370,12 +370,12 @@ export default function ReportingSuite({
       {activeReportTab === 'corporate' && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {/* Picker Panel */}
-          <div className="bg-white p-4.5 rounded-xl border border-slate-100 shadow-2xs space-y-4 h-fit">
-            <h4 className="font-semibold text-slate-800 text-sm tracking-tight border-b border-slate-50 pb-2">
+          <div className="bg-white p-4.5 rounded-xl border border-slate-200 shadow-sm space-y-4 h-fit">
+            <h4 className="font-semibold text-slate-800 text-sm tracking-tight border-b border-slate-200 pb-2">
               Corporate Account Scope
             </h4>
             
-            <div className="space-y-1.5 font-sans">
+            <div className="space-y-1.5">
               <label className="text-slate-400 font-medium block">Select Corporate Employer:</label>
               <select
                 value={selectedClientId}
@@ -390,7 +390,7 @@ export default function ReportingSuite({
               </select>
             </div>
 
-            <div className="p-3 bg-slate-50 rounded-lg text-3xs leading-relaxed text-slate-500 space-y-1.5 font-mono">
+            <div className="p-3 bg-slate-50 rounded-lg text-[10px] leading-relaxed text-slate-500 space-y-1.5 font-mono">
               <span className="font-bold text-slate-700 block uppercase">PRIVACY ASSURANCE:</span>
               <p className="text-rose-600 font-bold">● RESTRICTED FROM CORPORATE VIEWERS</p>
               <p>This report is strictly aggregated. Federal HIPAA protocols prohibit corporate clients from accessing specific or identifying blood levels for their personnel.</p>
@@ -398,9 +398,9 @@ export default function ReportingSuite({
           </div>
 
           {/* Aggregated Report Details */}
-          <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-2xs col-span-3 space-y-6" id="corporate-report-printable">
+          <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm col-span-3 space-y-6" id="corporate-report-printable">
             {/* Report Header Logo */}
-            <div className="flex justify-between items-start gap-4 pb-6 border-b border-slate-100 font-sans">
+            <div className="flex justify-between items-start gap-4 pb-6 border-b border-slate-200">
               <div>
                 <h1 className="text-lg font-bold text-slate-800 leading-snug">Aggregated Corporate Screening Metrics</h1>
                 <p className="text-[10px] text-slate-400 font-mono font-bold tracking-wider mt-0.5 uppercase">Employer: {corporateClient?.name}</p>
@@ -412,7 +412,7 @@ export default function ReportingSuite({
             </div>
 
             {/* General metrics row */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100 text-xs font-sans">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs">
               <div>
                 <span className="text-slate-400 block pb-0.5">Total Registered Workforce</span>
                 <strong className="text-slate-800 text-base font-mono">{corporateParticipants.length} persons</strong>
@@ -441,11 +441,11 @@ export default function ReportingSuite({
                 WORKFORCE PSA HEALTH CATEGORIES PROFILE (Anonymized)
               </h4>
 
-              <div className="space-y-3.5 text-xs font-sans">
+              <div className="space-y-3.5 text-xs">
                 {/* Normal Row */}
                 <div className="flex items-center gap-4 justify-between">
                   <div className="w-1/3">
-                    <span className="inline-flex px-2 py-0.5 rounded-full text-3xs font-extrabold uppercase font-mono bg-emerald-50 text-emerald-700">
+                    <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold uppercase font-mono bg-emerald-50 text-emerald-700">
                       Normal Segment (&lt; 4.0)
                     </span>
                   </div>
@@ -460,7 +460,7 @@ export default function ReportingSuite({
                 {/* Borderline Row */}
                 <div className="flex items-center gap-4 justify-between">
                   <div className="w-1/3">
-                    <span className="inline-flex px-2 py-0.5 rounded-full text-3xs font-extrabold uppercase font-mono bg-amber-50 text-amber-700">
+                    <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold uppercase font-mono bg-amber-50 text-amber-700">
                       Borderline (4.0 - 9.9)
                     </span>
                   </div>
@@ -475,7 +475,7 @@ export default function ReportingSuite({
                 {/* Elevated Row */}
                 <div className="flex items-center gap-4 justify-between">
                   <div className="w-1/3">
-                    <span className="inline-flex px-2 py-0.5 rounded-full text-3xs font-extrabold uppercase font-mono bg-rose-50 text-rose-700">
+                    <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold uppercase font-mono bg-rose-50 text-rose-700">
                       Elevated (&ge; 10.0)
                     </span>
                   </div>
@@ -494,10 +494,10 @@ export default function ReportingSuite({
               <h4 className="font-bold text-slate-700 text-xs uppercase tracking-wider font-mono">
                 Logistics Campaigns History
               </h4>
-              <div className="border border-slate-100 rounded-lg overflow-hidden text-xs font-sans">
+              <div className="border border-slate-200 rounded-lg overflow-hidden text-xs">
                 <table className="w-full text-left">
                   <thead>
-                    <tr className="bg-slate-50 border-b border-slate-100 font-mono text-[10px] text-slate-400">
+                    <tr className="bg-slate-50 border-b border-slate-200 font-mono text-[10px] text-slate-400">
                       <th className="p-2.5">Campaign Name</th>
                       <th className="p-2.5">Date</th>
                       <th className="p-2.5">Venue Location</th>
@@ -521,7 +521,7 @@ export default function ReportingSuite({
             </div>
 
             {/* REDACTION NOTICE */}
-            <div className="p-4 bg-emerald-50 text-emerald-800 rounded-xl border border-emerald-150 text-[11px] leading-relaxed flex items-start gap-2.5 font-sans">
+            <div className="p-4 bg-emerald-50 text-emerald-800 rounded-xl border border-emerald-150 text-[11px] leading-relaxed flex items-start gap-2.5">
               <Lock className="w-4.5 h-4.5 text-emerald-600 shrink-0 select-none mt-0.5" />
               <div>
                 <strong>Redaction protocol certified.</strong> All direct identifiers (names, employee IDs, dates of birth) are withheld from this interface view. To review detailed clinical diagnostic files, medical credentials must be uploaded to the <strong>US PrimeCare Specialty Doctor Portal</strong>.
@@ -533,16 +533,16 @@ export default function ReportingSuite({
 
       {/* --- TAB 3: CLINICAL CLINIC FOLLOW UPS --- */}
       {activeReportTab === 'followup' && userRole !== 'Corporate Viewer' && (
-        <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-2xs space-y-4" id="followup-report-printable">
+        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4" id="followup-report-printable">
           <div>
             <h3 className="font-semibold text-slate-800 tracking-tight text-base">Clinician Critical Follow-Up Case Registry</h3>
-            <p className="text-3xs text-slate-400 font-mono">PATIENT TARGET LIST WITH PSA &ge; 4.0 ng/mL</p>
+            <p className="text-[10px] text-slate-400 font-mono">PATIENT TARGET LIST WITH PSA &ge; 4.0 ng/mL</p>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs font-sans">
+            <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-100 text-slate-400 font-semibold font-mono tracking-wider text-3xs uppercase">
+                <tr className="bg-slate-50 border-b border-slate-200 text-slate-400 font-semibold font-mono tracking-wider text-[10px] uppercase">
                   <th className="p-3">Ref ID</th>
                   <th className="p-3">Patient Detail</th>
                   <th className="p-3">Employer</th>
@@ -572,7 +572,7 @@ export default function ReportingSuite({
                       <td className="p-3 truncate max-w-[150px]">{rev.scheduleReferral}</td>
                       <td className="p-3 truncate max-w-[200px]" title={rev.recommendations}>{rev.recommendations}</td>
                       <td className="p-3">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-3xs font-extrabold uppercase font-mono bg-amber-50 border border-amber-100 text-amber-700">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase font-mono bg-amber-50 border border-amber-100 text-amber-700">
                           {rev.status}
                         </span>
                       </td>
@@ -587,7 +587,7 @@ export default function ReportingSuite({
 
       {/* --- TAB 4: BILLING REPORT --- */}
       {activeReportTab === 'billing' && userRole !== 'Corporate Viewer' && (
-        <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-2xs space-y-6" id="billing-report-printable">
+        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-6" id="billing-report-printable">
           {/* Billing upper header */}
           <div className="flex justify-between border-b border-slate-50 pb-4">
             <div>
@@ -595,14 +595,14 @@ export default function ReportingSuite({
                 <DollarSign className="w-5 h-5 text-emerald-600" />
                 Corporate Financial Audit Checklist
               </h3>
-              <p className="text-3xs text-slate-400 font-mono uppercase">Outstanding accounts receivable balances</p>
+              <p className="text-[10px] text-slate-400 font-mono uppercase">Outstanding accounts receivable balances</p>
             </div>
           </div>
 
-          <div className="overflow-x-auto text-xs font-sans">
+          <div className="overflow-x-auto text-xs">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-100 font-mono text-3xs tracking-wider uppercase text-slate-400">
+                <tr className="bg-slate-50 border-b border-slate-200 font-mono text-[10px] tracking-wider uppercase text-slate-400">
                   <th className="p-3">Invoice Reference</th>
                   <th className="p-3">Corporate Client</th>
                   <th className="p-3">Diagnostics Campaign</th>
@@ -632,7 +632,7 @@ export default function ReportingSuite({
                       </td>
                       <td className="p-3 font-mono whitespace-nowrap">{inv.dueDate}</td>
                       <td className="p-3">
-                        <span className={`inline-flex px-2 py-0.5 rounded-full text-3xs font-bold uppercase font-mono ${
+                        <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold uppercase font-mono ${
                           inv.paymentStatus === 'Fully Paid' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
                         }`}>
                           {inv.paymentStatus}

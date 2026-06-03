@@ -125,7 +125,7 @@ export default function CampaignManagement({
         {canEdit && (
           <button
             onClick={() => { resetForm(); setShowModal(true); }}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold tracking-wide uppercase shadow-2xs transition duration-150"
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold tracking-wide uppercase transition duration-150"
           >
             <Plus className="w-4 h-4" />
             Schedule Campaign
@@ -145,13 +145,13 @@ export default function CampaignManagement({
           return (
             <div
               key={c.id}
-              className="bg-white rounded-2xl border border-slate-200/84 shadow-2xs hover:border-slate-300 hover:shadow-xs transition duration-150 p-6 flex flex-col justify-between space-y-4"
+              className="bg-white rounded-xl border border-slate-200 hover:border-slate-300 hover:shadow-xs transition duration-150 p-6 flex flex-col justify-between space-y-4"
             >
               <div>
                 {/* Header Context */}
                 <div className="flex items-start justify-between gap-3">
                   <div className="space-y-1">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 tracking-widest flex items-center gap-1 font-sans">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 tracking-widest flex items-center gap-1">
                       <Building className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                       {client ? client.name : 'Unknown Corp'}
                     </span>
@@ -169,7 +169,7 @@ export default function CampaignManagement({
                 </div>
 
                 {/* Logistics breakdown */}
-                <div className="space-y-2.5 pt-3.5 text-xs text-slate-500 font-sans">
+                <div className="space-y-2.5 pt-3.5 text-xs text-slate-500">
                   <div className="flex items-center gap-2.5">
                     <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
                     <span className="font-mono font-medium text-slate-700">{c.screeningDate}</span>
@@ -182,14 +182,14 @@ export default function CampaignManagement({
 
                   <div className="flex items-center gap-2.5">
                     <Compass className="w-4 h-4 text-slate-400 shrink-0" />
-                    <span className="truncate italic text-slate-500 font-medium font-sans">Roster: {c.assignedTeam || 'None assigned'}</span>
+                    <span className="truncate italic text-slate-500 font-medium">Roster: {c.assignedTeam || 'None assigned'}</span>
                   </div>
                 </div>
 
                 {/* Progress Indicators */}
-                <div className="pt-4 space-y-2 font-sans border-t border-slate-100 mt-4">
+                <div className="pt-4 space-y-2 border-t border-slate-100 mt-4">
                   <div className="flex justify-between items-center text-xs">
-                    <span className="text-slate-400 flex items-center gap-1 font-sans font-semibold">
+                    <span className="text-slate-400 flex items-center gap-1 font-semibold">
                       <Users className="w-3.5 h-3.5" />
                       Registrants:
                     </span>
@@ -201,7 +201,7 @@ export default function CampaignManagement({
                   <div className="overflow-hidden h-1.5 text-xs flex rounded-full bg-slate-100">
                     <div
                       style={{ width: `${Math.min(100, completionPct)}%` }}
-                      className={`shadow-xs flex flex-col text-center whitespace-nowrap text-white justify-center transition-all duration-300 rounded-full ${
+                      className={`flex flex-col text-center whitespace-nowrap text-white justify-center transition-all duration-300 rounded-full ${
                         c.status === 'Completed' ? 'bg-emerald-500' : 'bg-blue-500'
                       }`}
                     ></div>
@@ -209,7 +209,7 @@ export default function CampaignManagement({
                 </div>
 
                 {c.notes && (
-                  <p className="text-[11px] text-slate-400 font-sans italic pt-2 line-clamp-2 leading-relaxed">
+                  <p className="text-[11px] text-slate-400 italic pt-2 line-clamp-2 leading-relaxed">
                     &ldquo;{c.notes}&rdquo;
                   </p>
                 )}
@@ -226,7 +226,7 @@ export default function CampaignManagement({
                     Configure Campaign
                   </button>
                 ) : (
-                  <span className="text-3xs text-slate-300 uppercase font-mono tracking-wider">Read Only Access</span>
+                  <span className="text-[10px] text-slate-300 uppercase font-mono tracking-wider">Read Only Access</span>
                 )}
               </div>
             </div>
@@ -237,7 +237,7 @@ export default function CampaignManagement({
       {/* Campaign Configuration Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-slate-900/30 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-slate-100 flex items-center justify-between">
               <h3 className="font-bold font-display text-slate-900 tracking-tight text-lg">
                 {editingCampaign ? 'Configure Outreach Campaign' : 'Schedule Screening Lifecycle'}
@@ -250,9 +250,9 @@ export default function CampaignManagement({
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs font-sans">
+            <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs">
               <div className="space-y-1.5">
-                <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px] font-sans">Campaign Operational Name *</label>
+                <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px]">Campaign Name *</label>
                 <input
                   type="text"
                   required
@@ -265,7 +265,7 @@ export default function CampaignManagement({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px] font-sans">Linked Corporate Client *</label>
+                  <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px]">Client *</label>
                   <select
                     value={clientId}
                     onChange={(e) => setClientId(e.target.value)}
@@ -279,7 +279,7 @@ export default function CampaignManagement({
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px] font-sans">Screening Target Date *</label>
+                  <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px]">Date *</label>
                   <input
                     type="date"
                     required
@@ -291,7 +291,7 @@ export default function CampaignManagement({
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px] font-sans">Venue Details *</label>
+                <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px]">Venue *</label>
                 <input
                   type="text"
                   required
@@ -304,7 +304,7 @@ export default function CampaignManagement({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px] font-sans">Assigned Clinical Outreach Staff</label>
+                  <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px]">Assigned Team</label>
                   <input
                     type="text"
                     placeholder="e.g. Outreach Team B (Specialist Jenkins)"
@@ -315,7 +315,7 @@ export default function CampaignManagement({
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px] font-sans">Target Participant Threshold</label>
+                  <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px]">Target Count</label>
                   <input
                     type="number"
                     min={1}
@@ -327,7 +327,7 @@ export default function CampaignManagement({
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px] font-sans block mb-1">Campaign Execution State</label>
+                <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px] block mb-1">Status</label>
                 <div className="flex gap-4">
                   {(['Scheduled', 'In-Progress', 'Completed', 'Cancelled'] as const).map(st => (
                     <label key={st} className="inline-flex items-center gap-1.5 cursor-pointer font-semibold text-slate-700">
@@ -346,7 +346,7 @@ export default function CampaignManagement({
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px] font-sans">Operational Logistics Notes</label>
+                <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px]">Notes</label>
                 <textarea
                   rows={2}
                   placeholder="Specify refrigerator cold chain compliance, access badges, safety clearances..."
@@ -366,7 +366,7 @@ export default function CampaignManagement({
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 shadow-3xs"
+                  className="px-4 py-2 text-xs bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700"
                 >
                   {editingCampaign ? 'Save Changes' : 'Confirm Campaign'}
                 </button>

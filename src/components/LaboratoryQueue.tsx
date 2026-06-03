@@ -126,24 +126,24 @@ export default function LaboratoryQueue({
     <div className="space-y-6" id="laboratory-queue-root">
       {/* Upper Status Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center gap-3">
+        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
           <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
             <FlaskConical className="w-5 h-5 animate-pulse" />
           </div>
           <div>
-            <span className="text-[10px] text-slate-400 font-bold tracking-widest block font-sans uppercase">PENDING SAMPLES</span>
+            <span className="text-[10px] text-slate-400 font-bold tracking-widest block uppercase">PENDING SAMPLES</span>
             <strong className="text-xl text-slate-900 font-bold font-mono">
               {tests.filter(t => t.status !== 'Completed').length} vial{tests.filter(t => t.status !== 'Completed').length !== 1 ? 's' : ''}
             </strong>
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center gap-3">
+        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
           <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
             <CheckCircle className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-[10px] text-slate-400 font-bold tracking-widest block font-sans uppercase">COMPLETED ASSAYS</span>
+            <span className="text-[10px] text-slate-400 font-bold tracking-widest block uppercase">COMPLETED ASSAYS</span>
             <strong className="text-xl text-slate-900 font-bold font-mono">
               {tests.filter(t => t.status === 'Completed').length} records
             </strong>
@@ -151,8 +151,8 @@ export default function LaboratoryQueue({
         </div>
 
         {/* Classification rules reference card */}
-        <div className="bg-slate-50/50 p-5 rounded-2xl border border-slate-200/70 col-span-1 md:col-span-2 text-3xs font-mono text-slate-500 flex flex-col justify-center space-y-1">
-          <span className="font-bold text-slate-700 uppercase tracking-wider mb-1">Prostate Care Lab Threshold Rules:</span>
+        <div className="bg-slate-50/50 p-5 rounded-xl border border-slate-200 col-span-1 md:col-span-2 text-[10px] font-mono text-slate-500 flex flex-col justify-center space-y-1">
+          <span className="font-bold text-slate-700 uppercase tracking-wider mb-1">PSA Threshold Rules:</span>
           <p>• Normal Segment: &lt; 4.0 ng/mL</p>
           <p>• Borderline Segment: 4.0 ng/mL - 9.9 ng/mL (Flagged for basic review)</p>
           <p>• Elevated Segment: &ge; 10.0 ng/mL (Requires Clinical Specialist Intervention)</p>
@@ -160,12 +160,12 @@ export default function LaboratoryQueue({
       </div>
 
       {/* Main Container */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         {/* Table header with filters */}
-        <div className="p-5 bg-slate-50/50 border-b border-slate-200 flex flex-col sm:flex-row justify-between sm:items-center gap-3 font-sans">
-          <h3 className="font-bold font-display text-slate-900 text-sm tracking-tight flex items-center gap-1.5 animate-fade-in">
+        <div className="p-5 bg-slate-50/50 border-b border-slate-200 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+          <h3 className="font-bold font-display text-slate-900 text-sm tracking-tight flex items-center gap-1.5">
             <FlaskConical className="w-4 h-4 text-blue-600" />
-            Vials & Lab Sample Testing Desk
+            Lab Testing Queue
           </h3>
 
           <div className="flex items-center gap-2">
@@ -185,7 +185,7 @@ export default function LaboratoryQueue({
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50/50 border-b border-slate-200 text-slate-400 font-bold text-[10px] font-sans uppercase tracking-widest">
+              <tr className="bg-slate-50/50 border-b border-slate-200 text-slate-400 font-bold text-[10px] uppercase tracking-widest">
                 <th className="py-3.5 px-5">Sample ID</th>
                 <th className="py-3.5 px-5">Participant Detail</th>
                 <th className="py-3.5 px-5">Collection Date</th>
@@ -195,7 +195,7 @@ export default function LaboratoryQueue({
                 <th className="py-3.5 px-5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="text-xs text-slate-600 divide-y divide-slate-100 font-sans">
+            <tbody className="text-xs text-slate-600 divide-y divide-slate-100">
               {filteredTests.length > 0 ? (
                 filteredTests.map(t => {
                   const participant = participants.find(p => p.id === t.participantId);
@@ -303,7 +303,7 @@ export default function LaboratoryQueue({
                 })
               ) : (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400 font-medium font-sans">
+                  <td colSpan={7} className="py-12 text-center text-slate-400 font-medium">
                     No matching clinical samples in target workspace directory.
                   </td>
                 </tr>
@@ -316,17 +316,17 @@ export default function LaboratoryQueue({
       {/* Assay Entrance Modal Form */}
       {activeTestIdForm && (
         <div className="fixed inset-0 bg-slate-900/30 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-xl border border-slate-200/80 w-full max-w-sm overflow-hidden p-6">
+          <div className="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-sm overflow-hidden p-6">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3.5 mb-4">
               <h3 className="font-bold font-display text-slate-900 tracking-tight text-base flex items-center gap-1.5">
-                <FlaskConical className="w-4.5 h-4.5 text-blue-600 animate-bounce" />
-                Register Immunoassay Analytes
+                <FlaskConical className="w-4.5 h-4.5 text-blue-600" />
+                Register Assay Result
               </h3>
               <button onClick={() => setActiveTestIdForm(null)} className="text-slate-400 hover:text-slate-600 font-bold text-xl cursor-pointer">&times;</button>
             </div>
 
-            <form onSubmit={(e) => submitResult(e, activeTestIdForm)} className="space-y-4 font-sans text-xs">
-              <div className="p-3.5 bg-indigo-50/50 border border-indigo-100 rounded-xl text-indigo-850 font-sans space-y-1">
+            <form onSubmit={(e) => submitResult(e, activeTestIdForm)} className="space-y-4 text-xs">
+              <div className="p-3.5 bg-indigo-50/50 border border-indigo-100 rounded-xl text-indigo-850 space-y-1">
                 <p>Assumed Chemical Method: <strong>Chemiluminescence Immunoassay (CLIA)</strong></p>
                 <p className="text-[10px] text-indigo-600">Verify vial numbers match the computer screen before submitting!</p>
               </div>
@@ -378,7 +378,7 @@ export default function LaboratoryQueue({
       {/* Result Correction Form with Clinical Override Justification */}
       {correctionTestId && (
         <div className="fixed inset-0 bg-slate-900/30 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-white rounded-xl shadow-xl border border-slate-200/80 w-full max-w-sm overflow-hidden p-6">
+          <div className="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-sm overflow-hidden p-6">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3.5 mb-4">
               <h3 className="font-bold font-display text-slate-900 tracking-tight text-base flex items-center gap-1.5 text-amber-600">
                 <AlertOctagon className="w-4.5 h-4.5 text-amber-500" />
@@ -387,9 +387,9 @@ export default function LaboratoryQueue({
               <button onClick={() => setCorrectionTestId(null)} className="text-slate-400 hover:text-slate-600 font-bold text-xl cursor-pointer">&times;</button>
             </div>
 
-            <form onSubmit={submitCorrection} className="space-y-4 font-sans text-xs">
-              <div className="p-3.5 bg-amber-50/50 border border-amber-200/70 rounded-xl text-amber-850 leading-relaxed text-3xs font-mono">
-                🛑 <strong>Compliance Notice:</strong> This workstation is fully audit-tracked. Correcting validation results is permitted ONLY for errors in measurement registration, sample swaps, or calibration issues. Previous values will be permanently archived.
+            <form onSubmit={submitCorrection} className="space-y-4 text-xs">
+              <div className="p-3.5 bg-amber-50/50 border border-amber-200 rounded-xl text-amber-850 leading-relaxed text-[10px] font-mono">
+                🛑 <strong>Compliance Notice:</strong> Corrections are audit-tracked. Permitted only for measurement errors, sample swaps, or calibration issues. Previous values are permanently archived.
               </div>
 
               <div className="space-y-1.5">
@@ -404,8 +404,8 @@ export default function LaboratoryQueue({
                 />
               </div>
 
-              <div className="space-y-1.5 font-sans">
-                <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px]">Mandatory Correction Justification Reason *</label>
+              <div className="space-y-1.5">
+                <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px]">Correction Reason *</label>
                 <textarea
                   rows={2}
                   required
@@ -439,24 +439,24 @@ export default function LaboratoryQueue({
       {/* History Lookup Modal */}
       {viewHistoryTest && (
         <div className="fixed inset-0 bg-slate-900/30 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-xl border border-slate-200/80 w-full max-w-lg overflow-hidden p-6 animate-fade-in font-sans">
+          <div className="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-lg overflow-hidden p-6">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
               <h3 className="font-bold font-display text-slate-900 tracking-tight text-base flex items-center gap-1.5">
-                <History className="w-4.5 h-4.5 text-blue-600 animate-pulse" />
-                Correction Log Audit Checklist
+                <History className="w-4.5 h-4.5 text-blue-600" />
+                Correction Log
               </h3>
               <button onClick={() => setViewHistoryTest(null)} className="text-slate-400 hover:text-slate-600 font-bold text-xl cursor-pointer">&times;</button>
             </div>
 
             <div className="space-y-4 text-xs">
-              <div className="bg-slate-50 px-3 py-2 text-[11px] font-medium rounded-lg text-slate-500 border border-slate-200/60">
+              <div className="bg-slate-50 px-3 py-2 text-[11px] font-medium rounded-lg text-slate-500 border border-slate-200">
                 Tracking history for: <strong>Sample Ref: {viewHistoryTest.sampleId}</strong> (Vial ID: {viewHistoryTest.id})
               </div>
 
               <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-1">
                 {viewHistoryTest.history.map((h, i) => (
-                  <div key={i} className="p-3.5 border border-slate-200 rounded-xl bg-slate-50/50 space-y-1.5 font-sans">
-                    <div className="flex justify-between items-center text-3xs font-mono text-slate-400">
+                  <div key={i} className="p-3.5 border border-slate-200 rounded-xl bg-slate-50/50 space-y-1.5">
+                    <div className="flex justify-between items-center text-[10px] font-mono text-slate-400">
                       <span>Log date: {h.timestamp}</span>
                       <span className="font-bold text-slate-500">Modified by: {h.modifiedBy}</span>
                     </div>
@@ -466,7 +466,7 @@ export default function LaboratoryQueue({
                         {h.prevValue !== null ? h.prevValue.toFixed(2) : 'N/A'} ng/mL &rarr; {h.newValue !== null ? h.newValue.toFixed(2) : 'N/A'} ng/mL
                       </strong>
                     </div>
-                    <p className="text-[11px] text-slate-500 bg-white p-2.5 rounded-lg border border-slate-200/60 italic font-sans">
+                    <p className="text-[11px] text-slate-500 bg-white p-2.5 rounded-lg border border-slate-200 italic">
                       &ldquo;{h.reason}&rdquo;
                     </p>
                   </div>

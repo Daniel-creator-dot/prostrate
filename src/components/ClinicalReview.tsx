@@ -126,39 +126,39 @@ export default function ClinicalReview({
     <div className="space-y-6" id="clinical-review-root">
       {/* Clinician Overview Summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5 animate-fade-in">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center justify-between">
+        <div className="bg-white p-5 rounded-xl border border-slate-200 flex items-center justify-between">
           <div className="space-y-1">
-            <span className="text-[10px] text-slate-400 font-bold tracking-widest block font-sans uppercase">CRITICAL CASEWORK</span>
+            <span className="text-[10px] text-slate-400 font-bold tracking-widest block uppercase">CRITICAL CASEWORK</span>
             <strong className="text-2xl text-slate-900 font-bold font-mono">
               {reviewableTests.filter(t => !reviews.some(r => r.testId === t.id)).length} pending
             </strong>
-            <span className="text-3xs text-rose-500 font-medium block">Requires physician authorization</span>
+            <span className="text-[10px] text-rose-500 font-medium block">Requires physician authorization</span>
           </div>
           <div className="p-3 bg-red-50 text-red-600 rounded-xl shrink-0">
-            <Stethoscope className="w-5.5 h-5.5 animate-pulse" />
+            <Stethoscope className="w-5.5 h-5.5" />
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center justify-between">
+        <div className="bg-white p-5 rounded-xl border border-slate-200 flex items-center justify-between">
           <div className="space-y-1">
-            <span className="text-[10px] text-slate-400 font-bold tracking-widest block font-sans uppercase">FOLLOW-UP ACTIVE</span>
+            <span className="text-[10px] text-slate-400 font-bold tracking-widest block uppercase">FOLLOW-UP ACTIVE</span>
             <strong className="text-2xl text-slate-900 font-bold font-mono">
               {reviews.filter(r => r.status === 'Follow-Up Required' || r.status === 'Referred').length} cases
             </strong>
-            <span className="text-3xs text-slate-400 font-medium block">Outpatient scheduling ongoing</span>
+            <span className="text-[10px] text-slate-400 font-medium block">Outpatient scheduling ongoing</span>
           </div>
           <div className="p-3 bg-amber-50 text-amber-600 rounded-xl shrink-0">
             <Activity className="w-5.5 h-5.5" />
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center justify-between">
+        <div className="bg-white p-5 rounded-xl border border-slate-200 flex items-center justify-between">
           <div className="space-y-1">
-            <span className="text-[10px] text-slate-400 font-bold tracking-widest block font-sans uppercase">CASES CONCLUDED</span>
+            <span className="text-[10px] text-slate-400 font-bold tracking-widest block uppercase">CASES CONCLUDED</span>
             <strong className="text-2xl text-slate-900 font-bold font-mono">
               {reviews.filter(r => r.status === 'Closed' || r.status === 'Reviewed').length} files
             </strong>
-            <span className="text-3xs text-emerald-600 font-medium block">Patient files compiled</span>
+            <span className="text-[10px] text-emerald-600 font-medium block">Patient files compiled</span>
           </div>
           <div className="p-3 bg-emerald-50 rounded-xl text-emerald-600 shrink-0">
             <ShieldCheck className="w-5.5 h-5.5" />
@@ -167,10 +167,10 @@ export default function ClinicalReview({
       </div>
 
       {/* Specialist Workspace Table */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="p-5 bg-slate-50/50 border-b border-slate-200 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
           <div>
-            <h3 className="font-bold font-display text-slate-900 text-sm tracking-tight flex items-center gap-1.5 font-sans">
+            <h3 className="font-bold font-display text-slate-900 text-sm tracking-tight flex items-center gap-1.5">
               <Stethoscope className="w-4 h-4 text-blue-600" />
               Prosthetic Biomarker Specialised Clinic desk
             </h3>
@@ -192,7 +192,7 @@ export default function ClinicalReview({
             <select
               value={selectedReviewStatus}
               onChange={(e) => setSelectedReviewStatus(e.target.value)}
-              className="text-xs font-semibold bg-white border border-slate-200 px-3 py-1.5 cursor-pointer font-sans text-slate-700 rounded-lg focus:outline-hidden"
+              className="text-xs font-semibold bg-white border border-slate-200 px-3 py-1.5 cursor-pointer text-slate-700 rounded-lg focus:outline-hidden"
             >
               <option value="all">View All Flagged Cases</option>
               <option value="Pending Review">Pending Specialist Feedback</option>
@@ -207,7 +207,7 @@ export default function ClinicalReview({
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50/50 border-b border-slate-200 text-slate-400 font-bold text-[10px] font-sans uppercase tracking-widest">
+              <tr className="bg-slate-50/50 border-b border-slate-200 text-slate-400 font-bold text-[10px] uppercase tracking-widest">
                 <th className="py-3.5 px-5">Screening ID</th>
                 <th className="py-3.5 px-5">Demographics</th>
                 <th className="py-3.5 px-5">Employer Client</th>
@@ -217,7 +217,7 @@ export default function ClinicalReview({
                 <th className="py-3.5 px-5 text-right">Observation Desk</th>
               </tr>
             </thead>
-            <tbody className="text-xs text-slate-600 divide-y divide-slate-100 font-sans">
+            <tbody className="text-xs text-slate-600 divide-y divide-slate-100">
               {filteredReviewTests.length > 0 ? (
                 filteredReviewTests.map(t => {
                   const participant = participants.find(p => p.id === t.participantId);
@@ -234,7 +234,7 @@ export default function ClinicalReview({
                         {participant ? (
                           <div>
                             <span className="font-semibold text-slate-800">{participant.fullName}</span>
-                            <span className="text-[10px] text-slate-400 block font-sans font-medium">Age {participant.age} • DOB {participant.dob}</span>
+                            <span className="text-[10px] text-slate-400 block font-medium">Age {participant.age} • DOB {participant.dob}</span>
                           </div>
                         ) : (
                           <span className="text-rose-500 font-mono font-bold">Unknown</span>
@@ -262,7 +262,7 @@ export default function ClinicalReview({
                             {review.status}
                           </span>
                         ) : (
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-rose-50 border border-rose-100 text-rose-800 animate-pulse">
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider bg-rose-50 border border-rose-100 text-rose-800 animate-pulse">
                             Awaiting Assessment
                           </span>
                         )}
@@ -279,7 +279,7 @@ export default function ClinicalReview({
                         )}
                       </td>
 
-                      <td className="py-4 px-5 text-right whitespace-nowrap font-sans">
+                      <td className="py-4 px-5 text-right whitespace-nowrap">
                         {isSpecialist ? (
                           <button
                             onClick={() => handleOpenReview(t)}
@@ -297,7 +297,7 @@ export default function ClinicalReview({
                 })
               ) : (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400 font-medium font-sans">
+                  <td colSpan={7} className="py-12 text-center text-slate-400 font-medium">
                     No clinical risk profiles flagged in active laboratory registry.
                   </td>
                 </tr>
@@ -310,7 +310,7 @@ export default function ClinicalReview({
       {/* Specialist Review Intake Modal Form */}
       {activeTestToReview && (
         <div className="fixed inset-0 bg-slate-900/30 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-xl border border-slate-200/80 w-full max-w-lg max-h-[92vh] overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-lg max-h-[92vh] overflow-y-auto">
             <div className="p-6 border-b border-slate-100 flex items-center justify-between animate-fade-in">
               <h3 className="font-bold font-display text-slate-900 tracking-tight text-base flex items-center gap-1.5">
                 <Stethoscope className="w-5 h-5 text-blue-600 shrink-0" />
@@ -319,30 +319,30 @@ export default function ClinicalReview({
               <button onClick={() => setActiveTestToReview(null)} className="text-slate-400 hover:text-slate-600 font-bold text-xl cursor-pointer">&times;</button>
             </div>
 
-            <form onSubmit={handleFormSubmit} className="p-6 space-y-4 text-xs font-sans">
+            <form onSubmit={handleFormSubmit} className="p-6 space-y-4 text-xs">
               <div className="grid grid-cols-2 gap-3.5 p-4 bg-slate-50 border border-slate-200 rounded-xl justify-between">
                 <div>
-                  <span className="text-slate-400 block font-sans font-semibold tracking-wider uppercase text-[9px] mb-0.5">PATIENT DEMOGRAPHICS</span>
+                  <span className="text-slate-400 block font-semibold tracking-wider uppercase text-[9px] mb-0.5">PATIENT DEMOGRAPHICS</span>
                   <strong className="text-slate-900 text-xs font-bold leading-none block">
                     {participants.find(p => p.id === activeTestToReview.participantId)?.fullName}
                   </strong>
-                  <p className="text-3xs font-mono text-slate-450 mt-1 font-semibold uppercase">
+                  <p className="text-[10px] font-mono text-slate-450 mt-1 font-semibold uppercase">
                     Screen ID: {activeTestToReview.participantId} • Age {participants.find(p => p.id === activeTestToReview.participantId)?.age}
                   </p>
                 </div>
 
                 <div className="text-right">
-                  <span className="text-slate-400 block font-sans font-semibold tracking-wider uppercase text-[9px] mb-0.5">TOTAL PSA VALUE</span>
+                  <span className="text-slate-400 block font-semibold tracking-wider uppercase text-[9px] mb-0.5">TOTAL PSA VALUE</span>
                   <strong className="text-sm font-mono font-bold text-rose-600 block leading-none">
                     {activeTestToReview.psaValue !== null ? activeTestToReview.psaValue.toFixed(2) : '--'} ng/mL
                   </strong>
-                  <p className="text-3xs font-mono text-slate-500 mt-1 uppercase font-bold tracking-wider">
+                  <p className="text-[10px] font-mono text-slate-500 mt-1 uppercase font-bold tracking-wider">
                     {activeTestToReview.classification}
                   </p>
                 </div>
               </div>
 
-              <div className="space-y-1.5 font-sans">
+              <div className="space-y-1.5">
                 <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px]">Physician Clinical Observations *</label>
                 <textarea
                   rows={3}
@@ -354,7 +354,7 @@ export default function ClinicalReview({
                 />
               </div>
 
-              <div className="space-y-1.5 font-sans">
+              <div className="space-y-1.5">
                 <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px]">Follow-Up Clinical Recommendations *</label>
                 <textarea
                   rows={3}
@@ -375,12 +375,12 @@ export default function ClinicalReview({
                     onChange={(e) => setRequestRepeatTest(e.target.checked)}
                     className="w-4 h-4 text-indigo-600 focus:ring-indigo-500 rounded-lg cursor-pointer"
                   />
-                  <label htmlFor="repeatTest" className="text-slate-600 font-bold cursor-pointer select-none text-[11px] leading-relaxed font-sans">
+                  <label htmlFor="repeatTest" className="text-slate-600 font-bold cursor-pointer select-none text-[11px] leading-relaxed">
                     Request Bioassay Repeat Rerunning
                   </label>
                 </div>
 
-                <div className="space-y-1.5 font-sans">
+                <div className="space-y-1.5">
                   <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px]">Referral Diagnostics Clinic, if any</label>
                   <input
                     type="text"
@@ -392,7 +392,7 @@ export default function ClinicalReview({
                 </div>
               </div>
 
-              <div className="space-y-1.5 font-sans">
+              <div className="space-y-1.5">
                 <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px]">Diagnosis Validation Status Override</label>
                 <div className="flex flex-wrap gap-4 pt-1">
                   {(['Reviewed', 'Follow-Up Required', 'Referred', 'Closed'] as const).map(st => (
@@ -405,13 +405,13 @@ export default function ClinicalReview({
                         onChange={() => setFollowUpStatus(st)}
                         className="text-blue-600 focus:ring-blue-500 cursor-pointer"
                       />
-                      <span className="text-slate-600 text-xs font-semibold font-sans">{st}</span>
+                      <span className="text-slate-600 text-xs font-semibold">{st}</span>
                     </label>
                   ))}
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-3 border-t border-slate-100 font-sans">
+              <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setActiveTestToReview(null)}
@@ -421,7 +421,7 @@ export default function ClinicalReview({
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 shadow-3xs cursor-pointer"
+                  className="px-4 py-2 text-xs bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 cursor-pointer"
                 >
                   Submit Clinical Assessment
                 </button>

@@ -188,7 +188,7 @@ export default function ParticipantRegistration({
         {canRegister && (
           <button
             onClick={() => { resetForm(); setShowModal(true); }}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold tracking-wide uppercase shadow-2xs transition duration-150 cursor-pointer"
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold tracking-wide uppercase transition duration-150 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Check-In Participant
@@ -197,7 +197,7 @@ export default function ParticipantRegistration({
       </div>
 
       {/* Query Filters */}
-      <div className="flex flex-col sm:flex-row gap-4 bg-white p-4 rounded-xl border border-slate-200/80 shadow-2xs items-center justify-between">
+      <div className="flex flex-col sm:flex-row gap-4 bg-white p-4 rounded-xl border border-slate-200 items-center justify-between">
         <div className="relative w-full sm:max-w-md">
           <Search className="absolute left-3 top-2.5 h-4.5 w-4.5 text-slate-400" />
           <input
@@ -209,7 +209,7 @@ export default function ParticipantRegistration({
           />
         </div>
 
-        <div className="flex items-center gap-2.5 shrink-0 w-full sm:w-auto justify-end font-sans">
+        <div className="flex items-center gap-2.5 shrink-0 w-full sm:w-auto justify-end">
           <label className="text-xs font-semibold text-slate-400">Filter Campaign:</label>
           <select
             value={selectedCampaignId}
@@ -225,11 +225,11 @@ export default function ParticipantRegistration({
       </div>
 
       {/* Register List - Responsive Table layout */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50/50 border-b border-slate-200 text-slate-400 font-bold text-[10px] font-sans uppercase tracking-widest">
+              <tr className="bg-slate-50/50 border-b border-slate-200 text-slate-400 font-bold text-[10px] uppercase tracking-widest">
                 <th className="py-3.5 px-5">Screening ID</th>
                 <th className="py-3.5 px-5">Employee ID</th>
                 <th className="py-3.5 px-5">Full Name</th>
@@ -239,7 +239,7 @@ export default function ParticipantRegistration({
                 <th className="py-3.5 px-5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="text-xs text-slate-600 divide-y divide-slate-100 font-sans">
+            <tbody className="text-xs text-slate-600 divide-y divide-slate-100">
               {filteredParticipants.length > 0 ? (
                 filteredParticipants.map(p => {
                   const client = clients.find(cl => cl.id === p.companyId);
@@ -260,7 +260,7 @@ export default function ParticipantRegistration({
                       {/* Full Name & Department */}
                       <td className="py-4 px-5 whitespace-nowrap font-medium text-slate-800">
                         <div className="font-semibold">{p.fullName}</div>
-                        <span className="text-[10px] text-slate-400 font-medium font-sans block">{p.department}</span>
+                        <span className="text-[10px] text-slate-400 font-medium block">{p.department}</span>
                       </td>
 
                       {/* DOB / Age */}
@@ -274,7 +274,7 @@ export default function ParticipantRegistration({
                         <div className="font-bold text-slate-705 truncate max-w-[150px]">
                           {client ? client.name : 'Unknown'}
                         </div>
-                        <p className="text-[10px] text-slate-400 truncate max-w-[180px] font-medium font-sans">
+                        <p className="text-[10px] text-slate-400 truncate max-w-[180px] font-medium">
                           {campaign ? campaign.name : 'Unknown Campaign'}
                         </p>
                       </td>
@@ -282,19 +282,19 @@ export default function ParticipantRegistration({
                       {/* Consent Checkmark */}
                       <td className="py-4 px-5 whitespace-nowrap">
                         {p.consentConfirmed ? (
-                          <span className="inline-flex items-center gap-1 text-emerald-800 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full font-bold font-sans uppercase text-[9px] leading-none">
+                          <span className="inline-flex items-center gap-1 text-emerald-800 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full font-bold uppercase text-[9px] leading-none">
                             <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
                             Confirmed
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-rose-800 bg-rose-50 border border-rose-100 px-2.5 py-1 rounded-full font-bold font-sans uppercase text-[9px] leading-none">
+                          <span className="inline-flex items-center gap-1 text-rose-800 bg-rose-50 border border-rose-100 px-2.5 py-1 rounded-full font-bold uppercase text-[9px] leading-none">
                             Declined/Missing
                           </span>
                         )}
                       </td>
 
                       {/* Actions */}
-                      <td className="py-4 px-5 text-right space-x-1.5 whitespace-nowrap font-sans">
+                      <td className="py-4 px-5 text-right space-x-1.5 whitespace-nowrap">
                         <button
                           onClick={() => setActiveBarcodeParticipant(p)}
                           className="px-2.5 py-1.5 text-xs font-bold text-slate-600 bg-slate-50 border border-slate-200 hover:bg-slate-100 rounded-lg inline-flex items-center gap-1 transition cursor-pointer"
@@ -319,7 +319,7 @@ export default function ParticipantRegistration({
                 })
               ) : (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400 font-sans font-medium">
+                  <td colSpan={7} className="py-12 text-center text-slate-400 font-medium">
                     No matching screening candidate logs found.
                   </td>
                 </tr>
@@ -332,7 +332,7 @@ export default function ParticipantRegistration({
       {/* Barcode Preview Modal */}
       {activeBarcodeParticipant && (
         <div className="fixed inset-0 bg-slate-900/30 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in animate-duration-150">
-          <div className="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-sm overflow-hidden p-6 relative font-sans">
+          <div className="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-sm overflow-hidden p-6 relative">
             <button
               onClick={() => setActiveBarcodeParticipant(null)}
               className="absolute right-4 top-4 text-slate-400 hover:text-slate-600 font-bold text-xl cursor-pointer"
@@ -341,12 +341,12 @@ export default function ParticipantRegistration({
             </button>
             
             {/* Real printable bar card container */}
-            <div className="border border-dashed border-slate-300 p-5 rounded-2xl text-center space-y-4" id="barcode-card-printable">
-              <span className="text-[10px] font-bold text-blue-700 uppercase tracking-widest font-sans block">PrimeCare Clinical Routing Lab Card</span>
+            <div className="border border-dashed border-slate-300 p-5 rounded-xl text-center space-y-4" id="barcode-card-printable">
+              <span className="text-[10px] font-bold text-blue-700 uppercase tracking-widest block">PrimeCare Clinical Routing Lab Card</span>
               
-              <div className="py-4 bg-slate-50 rounded-xl flex flex-col items-center justify-center space-y-2 border border-slate-200/60">
+              <div className="py-4 bg-slate-50 rounded-xl flex flex-col items-center justify-center space-y-2 border border-slate-200">
                 {/* Simulated high fidelity barcode using flex grids */}
-                <div className="flex bg-white py-4 px-6 border border-slate-200 rounded-sm shadow-3xs">
+                <div className="flex bg-white py-4 px-6 border border-slate-200 rounded-sm">
                   {Array.from({ length: 24 }).map((_, i) => {
                     const sizes = [1, 3, 1, 4, 2, 1, 2, 4, 1, 3, 2, 1, 4, 1, 2, 1, 3, 1, 2, 1, 4, 2, 1, 3];
                     const size = sizes[i % sizes.length];
@@ -398,7 +398,7 @@ export default function ParticipantRegistration({
       {/* Intake check-in register modal */}
       {showModal && (
         <div className="fixed inset-0 bg-slate-900/30 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-xl border border-slate-200/80 w-full max-w-lg max-h-[95vh] overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-lg max-h-[95vh] overflow-y-auto">
             <div className="p-6 border-b border-slate-100 flex items-center justify-between">
               <h3 className="font-bold font-display text-slate-900 tracking-tight text-lg">
                 {editingParticipant ? 'Configure Registrant Profile' : 'Onsite Participant Intake'}
@@ -411,10 +411,10 @@ export default function ParticipantRegistration({
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs font-sans">
+            <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs">
               <div className="p-3.5 bg-blue-50/50 rounded-xl flex items-center gap-2.5 border border-blue-100/50">
                 <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0 select-none" />
-                <span className="text-[11px] text-blue-700 font-sans font-medium leading-relaxed">
+                <span className="text-[11px] text-blue-700 font-medium leading-relaxed">
                   Assay logistics is strictly HIPAA compliant. Registered employee IDs stay localized to campaigning files.
                 </span>
               </div>
@@ -450,7 +450,7 @@ export default function ParticipantRegistration({
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5 font-sans">
+                <div className="space-y-1.5">
                   <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px]">Corporate Employee ID *</label>
                   <input
                     type="text"
@@ -487,7 +487,7 @@ export default function ParticipantRegistration({
                   />
                 </div>
 
-                <div className="space-y-1.5 font-sans">
+                <div className="space-y-1.5">
                   <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px]">Staff Department Name</label>
                   <input
                     type="text"
@@ -500,7 +500,7 @@ export default function ParticipantRegistration({
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5 font-sans">
+                <div className="space-y-1.5">
                   <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px]">Phone Number</label>
                   <input
                     type="tel"
@@ -523,7 +523,7 @@ export default function ParticipantRegistration({
                 </div>
               </div>
 
-              <div className="space-y-1.5 font-sans">
+              <div className="space-y-1.5">
                 <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px]">Emergency Contact Name & Phone</label>
                 <input
                   type="text"
@@ -543,7 +543,7 @@ export default function ParticipantRegistration({
                   onChange={(e) => setConsentConfirmed(e.target.checked)}
                   className="mt-1 w-4 h-4 text-blue-600 border-slate-300 rounded-lg focus:ring-blue-500 cursor-pointer"
                 />
-                <label htmlFor="consent" className="text-[11px] leading-relaxed text-slate-500 select-none cursor-pointer font-medium font-sans">
+                <label htmlFor="consent" className="text-[11px] leading-relaxed text-slate-500 select-none cursor-pointer font-medium">
                   <strong>Patient Physical Consent Affirmation:</strong> I certify that the participant has voluntarily declared consent for the drawing of blood samples for total prostatic diagnostic immunochemistry and understands the results will be reviewed clinically. *
                 </label>
               </div>
@@ -558,7 +558,7 @@ export default function ParticipantRegistration({
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 shadow-3xs cursor-pointer"
+                  className="px-4 py-2 text-xs bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 cursor-pointer"
                 >
                   {editingParticipant ? 'Save Demographics' : 'Register Intake'}
                 </button>
