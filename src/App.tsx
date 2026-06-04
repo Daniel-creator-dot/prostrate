@@ -156,9 +156,10 @@ const ROLE_PERMISSIONS: Record<UserRole, {
 };
 
 export default function App() {
-  // Master local database states
+  // Master local database states — initialized from API
   const [db, setDb] = useState(() => getInitialDatabase());
-  
+  const [dbLoaded, setDbLoaded] = useState(false);
+
   // Current session configurations
   const [currentUser, setCurrentUser] = useState<SystemUser>(db.users[0]); // default Super Admin
   const [sessionToken, setSessionToken] = useState<string>('PC-AUTH-SESSION-TOKEN-883011');
@@ -172,10 +173,27 @@ export default function App() {
   const [failedLoginAttempts, setFailedLoginAttempts] = useState(0);
   const [isAccountLocked, setIsAccountLocked] = useState(false);
 
-  // Sync state mutations to local storage whenever DB changes
+  // Load data from the PostgreSQL-backed API on mount
   useEffect(() => {
-    saveDatabase(db);
-  }, [db]);
+    fetch('/api/db')
+      .then(res => res.json())
+      .then(data => {
+        setDb(data);
+        if (data.users && data.users.length > 0) {
+          setCurrentUser(data.users[0]);
+        }
+        setDbLoaded(true);
+      })
+      .catch(err => {
+        console.warn('API unavailable, falling back to local data:', err);
+        setDbLoaded(true);
+      });
+  }, []);
+
+  // Also persist to local storage as backup cache
+  useEffect(() => {
+    if (dbLoaded) saveDatabase(db);
+  }, [db, dbLoaded]);
 
   // General Notification Triggering Helper (Module 12)
   const triggerSystemNotification = (title: string, message: string, recipient: string) => {
@@ -286,134 +304,138 @@ export default function App() {
   };
 
   // Module 2 Clients callbacks
-  const handleAddClient = (newClient: Omit<CorporateClient, 'id' | 'isArchived'>) => {
-    const clId = `CL-${Math.floor(100 + Math.random() * 900)}`;
-    const fullClient: CorporateClient = {
-      ...newClient,
-      id: clId,
-      isArchived: false
-    };
-
-    setDb(prev => ({
-      ...prev,
-      clients: [fullClient, ...prev.clients]
-    }));
-
-    addAuditEntry('CLIENT_ONBOARDED', `Client ${clId}`, null, `Onboarded ${newClient.name}`);
-    triggerSystemNotification('New Client Onboarded', `Corporate client ${newClient.name} successfully created.`, 'Super Administrator');
+  const handleAddClient = async (newClient: Omit<CorporateClient, 'id' | 'isArchived'>) => {
+    try {
+      const res = await fetch('/api/clients', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newClient),
+      });
+      const created = await res.json();
+      setDb(prev => ({ ...prev, clients: [created, ...prev.clients] }));
+      addAuditEntry('CLIENT_ONBOARDED', `Client ${created.id}`, null, `Onboarded ${newClient.name}`);
+      triggerSystemNotification('New Client Onboarded', `Corporate client ${newClient.name} successfully created.`, 'Super Administrator');
+    } catch {
+      // Fallback to local-only
+      const clId = `CL-${Math.floor(100 + Math.random() * 900)}`;
+      const fullClient: CorporateClient = { ...newClient, id: clId, isArchived: false };
+      setDb(prev => ({ ...prev, clients: [fullClient, ...prev.clients] }));
+    }
   };
 
-  const handleEditClient = (updated: CorporateClient) => {
+  const handleEditClient = async (updated: CorporateClient) => {
     const prev = db.clients.find(c => c.id === updated.id);
+    try {
+      await fetch(`/api/clients/${updated.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updated),
+      });
+    } catch { /* continue with local update */ }
     setDb(prevDb => ({
       ...prevDb,
       clients: prevDb.clients.map(c => c.id === updated.id ? updated : c)
     }));
-
-    addAuditEntry(
-      'CLIENT_UPDATED',
-      `Client ${updated.id}`,
-      JSON.stringify(prev),
-      JSON.stringify(updated)
-    );
+    addAuditEntry('CLIENT_UPDATED', `Client ${updated.id}`, JSON.stringify(prev), JSON.stringify(updated));
   };
 
-  const handleArchiveClient = (id: string) => {
+  const handleArchiveClient = async (id: string) => {
     const prev = db.clients.find(c => c.id === id);
+    try { await fetch(`/api/clients/${id}/archive`, { method: 'PATCH' }); } catch { /* local fallback */ }
     setDb(prevDb => ({
       ...prevDb,
       clients: prevDb.clients.map(c => c.id === id ? { ...c, isArchived: true } : c)
     }));
-
     addAuditEntry('CLIENT_ARCHIVED', `Client ${id}`, prev?.isArchived ? 'Archived' : 'Active', 'Archived');
   };
 
-  const handleRestoreClient = (id: string) => {
+  const handleRestoreClient = async (id: string) => {
     const prev = db.clients.find(c => c.id === id);
+    try { await fetch(`/api/clients/${id}/restore`, { method: 'PATCH' }); } catch { /* local fallback */ }
     setDb(prevDb => ({
       ...prevDb,
       clients: prevDb.clients.map(c => c.id === id ? { ...c, isArchived: false } : c)
     }));
-
     addAuditEntry('CLIENT_RESTORED', `Client ${id}`, prev?.isArchived ? 'Archived' : 'Active', 'Active');
   };
 
   // Module 3 Campaigns callbacks
-  const handleAddCampaign = (newC: Omit<ScreeningCampaign, 'id'>) => {
-    const campId = `CMP-${Math.floor(200 + Math.random() * 800)}`;
-    const fullCampaign: ScreeningCampaign = {
-      ...newC,
-      id: campId
-    };
-
-    setDb(prev => ({
-      ...prev,
-      campaigns: [...prev.campaigns, fullCampaign]
-    }));
-
-    addAuditEntry('CAMPAIGN_SCHEDULED', `Campaign ${campId}`, null, `Created campaign ${newC.name}`);
-    triggerSystemNotification('New Outreach Campaign Scheduled', `Campaign ${newC.name} is scheduled on ${newC.screeningDate}.`, 'Registration Officer');
+  const handleAddCampaign = async (newC: Omit<ScreeningCampaign, 'id'>) => {
+    try {
+      const res = await fetch('/api/campaigns', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newC),
+      });
+      const created = await res.json();
+      setDb(prev => ({ ...prev, campaigns: [...prev.campaigns, created] }));
+      addAuditEntry('CAMPAIGN_SCHEDULED', `Campaign ${created.id}`, null, `Created campaign ${newC.name}`);
+      triggerSystemNotification('New Outreach Campaign Scheduled', `Campaign ${newC.name} is scheduled on ${newC.screeningDate}.`, 'Registration Officer');
+    } catch {
+      const campId = `CMP-${Math.floor(200 + Math.random() * 800)}`;
+      const fullCampaign: ScreeningCampaign = { ...newC, id: campId };
+      setDb(prev => ({ ...prev, campaigns: [...prev.campaigns, fullCampaign] }));
+    }
   };
 
-  const handleEditCampaign = (updated: ScreeningCampaign) => {
+  const handleEditCampaign = async (updated: ScreeningCampaign) => {
     const prev = db.campaigns.find(c => c.id === updated.id);
+    try {
+      await fetch(`/api/campaigns/${updated.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updated),
+      });
+    } catch { /* local fallback */ }
     setDb(prevDb => ({
       ...prevDb,
       campaigns: prevDb.campaigns.map(c => c.id === updated.id ? updated : c)
     }));
-
-    addAuditEntry(
-      'CAMPAIGN_MODIFIED',
-      `Campaign ${updated.id}`,
-      JSON.stringify(prev),
-      JSON.stringify(updated)
-    );
-
-    // If campaign has been updated to completed, trigger automated invoices preparation alert
+    addAuditEntry('CAMPAIGN_MODIFIED', `Campaign ${updated.id}`, JSON.stringify(prev), JSON.stringify(updated));
     if (prev?.status !== 'Completed' && updated.status === 'Completed') {
       triggerSystemNotification('Screening Campaign Completed', `Campaign ${updated.name} completed. Outpatient billings ready for accounts officer.`, 'Accounts Officer');
     }
   };
 
   // Module 4 Participant callbacks
-  const handleRegisterParticipant = (newP: Omit<Participant, 'id' | 'registrationDate' | 'age'>) => {
-    const pId = `PRT-${Math.floor(300 + Math.random() * 700)}`;
-    const birthVal = new Date(newP.dob);
-    const age = new Date('2026-06-03').getFullYear() - birthVal.getFullYear();
-
-    const fullParticipant: Participant = {
-      ...newP,
-      id: pId,
-      age,
-      registrationDate: new Date().toISOString().split('T')[0]
-    };
-
-    // Automated associated PSA Test Collection queue trigger (Module 5)
-    const testId = `TST-${Math.floor(6000 + Math.random() * 3000)}`;
-    const assocTest: PSATest = {
-      id: testId,
-      participantId: pId,
-      sampleId: `SMP-${Math.floor(1000 + Math.random() * 9000)}`,
-      collectionDate: new Date().toISOString().split('T')[0],
-      processingDate: null,
-      laboratoryOfficer: null,
-      psaValue: null,
-      status: 'Sample Collected',
-      remarks: 'Registered. Diagnostic vial dispatched.',
-      classification: 'Pending',
-      history: []
-    };
-
-    setDb(prev => ({
-      ...prev,
-      participants: [...prev.participants, fullParticipant],
-      tests: [assocTest, ...prev.tests]
-    }));
-
-    addAuditEntry('PARTICIPANT_REGISTERED', `Participant ${pId}`, null, `Registered ${newP.fullName} & generated test queue.`);
+  const handleRegisterParticipant = async (newP: Omit<Participant, 'id' | 'registrationDate' | 'age'>) => {
+    try {
+      const res = await fetch('/api/participants', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newP),
+      });
+      const { participant, test } = await res.json();
+      setDb(prev => ({
+        ...prev,
+        participants: [...prev.participants, participant],
+        tests: [test, ...prev.tests]
+      }));
+      addAuditEntry('PARTICIPANT_REGISTERED', `Participant ${participant.id}`, null, `Registered ${newP.fullName} & generated test queue.`);
+    } catch {
+      // Fallback to local-only
+      const pId = `PRT-${Math.floor(300 + Math.random() * 700)}`;
+      const birthVal = new Date(newP.dob);
+      const age = new Date().getFullYear() - birthVal.getFullYear();
+      const fullParticipant: Participant = { ...newP, id: pId, age, registrationDate: new Date().toISOString().split('T')[0] };
+      const testId = `TST-${Math.floor(6000 + Math.random() * 3000)}`;
+      const assocTest: PSATest = {
+        id: testId, participantId: pId, sampleId: `SMP-${Math.floor(1000 + Math.random() * 9000)}`,
+        collectionDate: new Date().toISOString().split('T')[0], processingDate: null, laboratoryOfficer: null,
+        psaValue: null, status: 'Sample Collected', remarks: 'Registered. Diagnostic vial dispatched.', classification: 'Pending', history: []
+      };
+      setDb(prev => ({ ...prev, participants: [...prev.participants, fullParticipant], tests: [assocTest, ...prev.tests] }));
+    }
   };
 
-  const handleEditParticipant = (updated: Participant) => {
+  const handleEditParticipant = async (updated: Participant) => {
+    try {
+      await fetch(`/api/participants/${updated.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updated),
+      });
+    } catch { /* local fallback */ }
     setDb(prevDb => ({
       ...prevDb,
       participants: prevDb.participants.map(p => p.id === updated.id ? updated : p)
@@ -423,220 +445,177 @@ export default function App() {
   };
 
   // Module 5 & 6 PSA Lab Analytes callbacks
-  const handleUploadResult = (testId: string, value: number, remark: string) => {
-    // Classification rules of corporate workflow
+  const handleUploadResult = async (testId: string, value: number, remark: string) => {
     let classification: PSATest['classification'] = 'Normal';
-    if (value >= 4.0 && value < 10.0) {
-      classification = 'Borderline';
-    } else if (value >= 10.0) {
-      classification = 'Elevated';
+    if (value >= 4.0 && value < 10.0) classification = 'Borderline';
+    else if (value >= 10.0) classification = 'Elevated';
+
+    try {
+      const res = await fetch(`/api/tests/${testId}/result`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ psaValue: value, remarks: remark }),
+      });
+      const updatedTest = await res.json();
+      setDb(prevDb => ({ ...prevDb, tests: prevDb.tests.map(t => t.id === testId ? updatedTest : t) }));
+    } catch {
+      setDb(prevDb => ({
+        ...prevDb,
+        tests: prevDb.tests.map(t => t.id === testId ? { ...t, psaValue: value, remarks: remark, processingDate: new Date().toISOString().split('T')[0], laboratoryOfficer: currentUser.name, status: 'Completed', classification } : t)
+      }));
     }
 
-    setDb(prevDb => ({
-      ...prevDb,
-      tests: prevDb.tests.map(t => {
-        if (t.id === testId) {
-          return {
-            ...t,
-            psaValue: value,
-            remarks: remark,
-            processingDate: new Date().toISOString().split('T')[0],
-            laboratoryOfficer: currentUser.name,
-            status: 'Completed',
-            classification
-          };
-        }
-        return t;
-      })
-    }));
-
     addAuditEntry('TEST_RESULT_UPLOADED', `PSATest ${testId}`, 'psaValue: null', `psaValue: ${value}, classification: ${classification}`);
-
-    // If result is borderline or elevated, trigger specialized doctors diagnostic review flags (Module 12)
     if (classification !== 'Normal') {
-      triggerSystemNotification(
-        'Elevated PSA Detection',
-        `PSA value of ${value} ng/mL registered for sample ${testId}. Specialist urologist assessment recommended.`,
-        'Doctor / Specialist'
-      );
+      triggerSystemNotification('Elevated PSA Detection', `PSA value of ${value} ng/mL registered for sample ${testId}. Specialist urologist assessment recommended.`, 'Doctor / Specialist');
     }
   };
 
-  const handleModifyResultWithHistory = (testId: string, newValue: number, reason: string) => {
+  const handleModifyResultWithHistory = async (testId: string, newValue: number, reason: string) => {
     const prevTest = db.tests.find(t => t.id === testId);
     if (!prevTest) return;
 
     let classification: PSATest['classification'] = 'Normal';
-    if (newValue >= 4.0 && newValue < 10.0) {
-      classification = 'Borderline';
-    } else if (newValue >= 10.0) {
-      classification = 'Elevated';
+    if (newValue >= 4.0 && newValue < 10.0) classification = 'Borderline';
+    else if (newValue >= 10.0) classification = 'Elevated';
+
+    try {
+      const res = await fetch(`/api/tests/${testId}/correct`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newValue, reason, modifiedBy: `${currentUser.name} (${currentUser.role})` }),
+      });
+      const updatedTest = await res.json();
+      setDb(prevDb => ({ ...prevDb, tests: prevDb.tests.map(t => t.id === testId ? updatedTest : t) }));
+    } catch {
+      const correctionLog = { timestamp: new Date().toISOString(), modifiedBy: `${currentUser.name} (${currentUser.role})`, prevValue: prevTest.psaValue, newValue, reason };
+      setDb(prevDb => ({
+        ...prevDb,
+        tests: prevDb.tests.map(t => t.id === testId ? { ...t, psaValue: newValue, classification, processingDate: new Date().toISOString().split('T')[0], laboratoryOfficer: currentUser.name, remarks: `Corrected assay. Reason: ${reason}`, history: [correctionLog, ...t.history] } : t)
+      }));
     }
 
-    // Capture historic override corrections strictly (medical records MUST never be deleted or destroyed)
-    const correctionLog = {
-      timestamp: new Date().toISOString(),
-      modifiedBy: `${currentUser.name} (${currentUser.role})`,
-      prevValue: prevTest.psaValue,
-      newValue,
-      reason
-    };
-
-    setDb(prevDb => ({
-      ...prevDb,
-      tests: prevDb.tests.map(t => {
-        if (t.id === testId) {
-          return {
-            ...t,
-            psaValue: newValue,
-            classification,
-            processingDate: new Date().toISOString().split('T')[0],
-            laboratoryOfficer: currentUser.name,
-            remarks: `Corrected assay. Reason: ${reason}`,
-            history: [correctionLog, ...t.history]
-          };
-        }
-        return t;
-      })
-    }));
-
-    addAuditEntry(
-      'TEST_RESULT_CORRECTED',
-      `PSATest ${testId}`,
-      `psaValue: ${prevTest.psaValue}`,
-      `psaValue: ${newValue}, correction reason logged`
-    );
-
+    addAuditEntry('TEST_RESULT_CORRECTED', `PSATest ${testId}`, `psaValue: ${prevTest.psaValue}`, `psaValue: ${newValue}, correction reason logged`);
     if (classification !== 'Normal') {
-      triggerSystemNotification(
-        'Corrected Elevated PSA Value',
-        `Assay override: corrected PSA to ${newValue} ng/mL for sample ${testId}. Diagnostic review modified.`,
-        'Doctor / Specialist'
-      );
+      triggerSystemNotification('Corrected Elevated PSA Value', `Assay override: corrected PSA to ${newValue} ng/mL for sample ${testId}. Diagnostic review modified.`, 'Doctor / Specialist');
     }
   };
 
   // Module 7 Doctor assessment reviews
-  const handleAddReview = (newRev: Omit<SpecialistReview, 'id' | 'reviewDate' | 'specialistName'>) => {
-    const revId = `REV-${Math.floor(1000 + Math.random() * 8000)}`;
-    const finalReview: SpecialistReview = {
-      ...newRev,
-      id: revId,
-      reviewDate: new Date().toISOString().split('T')[0],
-      specialistName: currentUser.name
-    };
-
-    // Upsert specialist observations
-    setDb(prev => {
-      const exists = prev.reviews.some(r => r.testId === newRev.testId);
-      const updatedReviews = exists
-        ? prev.reviews.map(r => r.testId === newRev.testId ? finalReview : r)
-        : [...prev.reviews, finalReview];
-
-      return {
-        ...prev,
-        reviews: updatedReviews
-      };
-    });
-
-    addAuditEntry('CLINICAL_DIAGNOSIS_COMMITTED', `SpecialistReview ${revId}`, null, `Physician diagnosis logs recorded for sample ${newRev.testId}`);
-    
-    // If outpatient referral clinic was scheduled, push compliance reminder to alerts feed
+  const handleAddReview = async (newRev: Omit<SpecialistReview, 'id' | 'reviewDate' | 'specialistName'>) => {
+    try {
+      const res = await fetch('/api/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...newRev, specialistName: currentUser.name }),
+      });
+      const created = await res.json();
+      setDb(prev => {
+        const exists = prev.reviews.some(r => r.testId === newRev.testId);
+        return { ...prev, reviews: exists ? prev.reviews.map(r => r.testId === newRev.testId ? created : r) : [...prev.reviews, created] };
+      });
+      addAuditEntry('CLINICAL_DIAGNOSIS_COMMITTED', `SpecialistReview ${created.id}`, null, `Physician diagnosis logs recorded for sample ${newRev.testId}`);
+    } catch {
+      const revId = `REV-${Math.floor(1000 + Math.random() * 8000)}`;
+      const finalReview: SpecialistReview = { ...newRev, id: revId, reviewDate: new Date().toISOString().split('T')[0], specialistName: currentUser.name };
+      setDb(prev => {
+        const exists = prev.reviews.some(r => r.testId === newRev.testId);
+        return { ...prev, reviews: exists ? prev.reviews.map(r => r.testId === newRev.testId ? finalReview : r) : [...prev.reviews, finalReview] };
+      });
+    }
     if (newRev.scheduleReferral !== 'None') {
       triggerSystemNotification('Urology Referral Dispatched', `Patient reference ${newRev.participantId} referred to ${newRev.scheduleReferral}.`, 'Super Administrator');
     }
   };
 
   // Module 8 Billings & Invoicing callbacks
-  const handleGenerateInvoice = (newInv: Omit<Invoice, 'id' | 'issuedDate' | 'payments' | 'outstandingBalance' | 'paymentStatus' | 'subtotal' | 'tax' | 'totalAmount'>) => {
-    const invId = `INV-2026-${Math.floor(100 + Math.random() * 800)}`;
-    const subtotal = newInv.numberScreened * newInv.unitCost;
-    const tax = subtotal * 0.05; // 5% flat output tax
-    const totalAmount = subtotal + tax;
-
-    const fullInvoice: Invoice = {
-      ...newInv,
-      id: invId,
-      subtotal,
-      tax,
-      totalAmount,
-      outstandingBalance: totalAmount,
-      paymentStatus: 'Unpaid',
-      issuedDate: new Date().toISOString().split('T')[0],
-      payments: []
-    };
-
-    setDb(prev => ({
-      ...prev,
-      invoices: [fullInvoice, ...prev.invoices]
-    }));
-
-    addAuditEntry('INVOICE_ISSUED', `Invoice ${invId}`, null, `Issued invoice of $${totalAmount.toFixed(2)} to client ${newInv.clientId}`);
+  const handleGenerateInvoice = async (newInv: Omit<Invoice, 'id' | 'issuedDate' | 'payments' | 'outstandingBalance' | 'paymentStatus' | 'subtotal' | 'tax' | 'totalAmount'>) => {
+    try {
+      const res = await fetch('/api/invoices', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newInv),
+      });
+      const created = await res.json();
+      setDb(prev => ({ ...prev, invoices: [created, ...prev.invoices] }));
+      addAuditEntry('INVOICE_ISSUED', `Invoice ${created.id}`, null, `Issued invoice of $${created.totalAmount.toFixed(2)} to client ${newInv.clientId}`);
+    } catch {
+      const invId = `INV-2026-${Math.floor(100 + Math.random() * 800)}`;
+      const subtotal = newInv.numberScreened * newInv.unitCost;
+      const tax = subtotal * 0.05;
+      const totalAmount = subtotal + tax;
+      const fullInvoice: Invoice = { ...newInv, id: invId, subtotal, tax, totalAmount, outstandingBalance: totalAmount, paymentStatus: 'Unpaid', issuedDate: new Date().toISOString().split('T')[0], payments: [] };
+      setDb(prev => ({ ...prev, invoices: [fullInvoice, ...prev.invoices] }));
+    }
   };
 
-  const handleRecordPayment = (invId: string, amount: number, method: 'Bank Transfer' | 'Credit Card' | 'Cheque' | 'Cash', ref: string) => {
+  const handleRecordPayment = async (invId: string, amount: number, method: 'Bank Transfer' | 'Credit Card' | 'Cheque' | 'Cash', ref: string) => {
     const prevInv = db.invoices.find(i => i.id === invId);
     if (!prevInv) return;
 
-    const remaining = prevInv.outstandingBalance - amount;
-    const status: Invoice['paymentStatus'] = remaining <= 0 ? 'Fully Paid' : 'Partially Paid';
-
-    const newPaymentRecord = {
-      id: `PMT-${Date.now()}`,
-      amount,
-      date: new Date().toISOString().split('T')[0],
-      method,
-      transactionRef: ref
-    };
-
-    setDb(prevDb => ({
-      ...prevDb,
-      invoices: prevDb.invoices.map(i => {
-        if (i.id === invId) {
-          return {
-            ...i,
-            outstandingBalance: remaining,
-            paymentStatus: status,
-            payments: [...i.payments, newPaymentRecord]
-          };
-        }
-        return i;
-      })
-    }));
-
-    addAuditEntry(
-      'INVOICE_PAYMENT_SETTLED',
-      `Invoice ${invId}`,
-      `outstandingBalance: ${prevInv.outstandingBalance}`,
-      `Recorded payment of $${amount.toFixed(2)} via ${method}, outstanding: $${remaining.toFixed(2)}`
-    );
+    try {
+      const res = await fetch(`/api/invoices/${invId}/payments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount, method, transactionRef: ref }),
+      });
+      const updatedInvoice = await res.json();
+      setDb(prevDb => ({ ...prevDb, invoices: prevDb.invoices.map(i => i.id === invId ? updatedInvoice : i) }));
+    } catch {
+      const remaining = prevInv.outstandingBalance - amount;
+      const status: Invoice['paymentStatus'] = remaining <= 0 ? 'Fully Paid' : 'Partially Paid';
+      const newPaymentRecord = { id: `PMT-${Date.now()}`, amount, date: new Date().toISOString().split('T')[0], method, transactionRef: ref };
+      setDb(prevDb => ({
+        ...prevDb,
+        invoices: prevDb.invoices.map(i => i.id === invId ? { ...i, outstandingBalance: remaining, paymentStatus: status, payments: [...i.payments, newPaymentRecord] } : i)
+      }));
+    }
+    addAuditEntry('INVOICE_PAYMENT_SETTLED', `Invoice ${invId}`, `outstandingBalance: ${prevInv.outstandingBalance}`, `Recorded payment of $${amount.toFixed(2)} via ${method}`);
   };
 
   // Module 1 User states modifications (Super Admin Settings Control)
-  const handleToggleUserStatus = (uId: string) => {
+  const handleToggleUserStatus = async (uId: string) => {
     const target = db.users.find(u => u.id === uId);
     if (!target) return;
 
+    const updated = { ...target, isActive: !target.isActive };
+    try {
+      await fetch(`/api/users/${uId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updated),
+      });
+    } catch { /* local fallback */ }
+
     setDb(prev => ({
       ...prev,
-      users: prev.users.map(u => u.id === uId ? { ...u, isActive: !u.isActive } : u)
+      users: prev.users.map(u => u.id === uId ? updated : u)
     }));
 
     addAuditEntry(
       'USER_CREDENTIALS_TOGGLED',
       `User ${uId}`,
       `isActive: ${target.isActive}`,
-      `isActive: ${!target.isActive}`
+      `isActive: ${updated.isActive}`
     );
   };
 
-  const handleRoleChange = (uId: string, newRole: UserRole) => {
+  const handleRoleChange = async (uId: string, newRole: UserRole) => {
     const target = db.users.find(u => u.id === uId);
     if (!target) return;
 
+    const updated = { ...target, role: newRole };
+    try {
+      await fetch(`/api/users/${uId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updated),
+      });
+    } catch { /* local fallback */ }
+
     setDb(prev => ({
       ...prev,
-      users: prev.users.map(u => u.id === uId ? { ...u, role: newRole } : u)
+      users: prev.users.map(u => u.id === uId ? updated : u)
     }));
 
     addAuditEntry(
