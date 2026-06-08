@@ -189,131 +189,126 @@ export default function ClientManagement({
         </div>
       </div>
 
-      {/* Directory Grid */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        {filteredClients.length > 0 ? (
-          filteredClients.map(c => {
-            const clientPkg = packages.find(p => p.id === c.packageId);
-            const clientCampaigns = campaigns.filter(campaign => campaign.clientId === c.id);
+      {/* Directory Table */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr className="bg-slate-50/50 border-b border-slate-200 text-slate-400 font-bold text-[10px] uppercase tracking-widest">
+                <th className="py-3.5 px-5">Client Info</th>
+                <th className="py-3.5 px-5">Contact Person</th>
+                <th className="py-3.5 px-5">Contact Details</th>
+                <th className="py-3.5 px-5">Package / Population</th>
+                <th className="py-3.5 px-5">Active Campaigns</th>
+                <th className="py-3.5 px-5">Status</th>
+                <th className="py-3.5 px-5 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="text-xs text-slate-600 divide-y divide-slate-100">
+              {filteredClients.length > 0 ? (
+                filteredClients.map(c => {
+                  const clientPkg = packages.find(p => p.id === c.packageId);
+                  const clientCampaigns = campaigns.filter(campaign => campaign.clientId === c.id);
 
-            return (
-              <div
-                key={c.id}
-                className="bg-white rounded-xl border border-slate-200 hover:border-slate-300 hover:shadow-xs transition duration-150 p-6 flex flex-col justify-between"
-              >
-                <div>
-                  {/* Status Banner */}
-                  <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3 mb-4">
-                    <div className="flex items-center gap-2.5">
-                      <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
-                        <Building className="w-4.5 h-4.5" />
-                      </div>
-                      <div>
-                        <h4 className="font-bold font-display text-slate-900 tracking-tight text-base">{c.name}</h4>
-                        <span className="text-[10px] text-slate-400 uppercase tracking-widest block font-mono font-bold">{c.industry}</span>
-                      </div>
-                    </div>
+                  return (
+                    <tr key={c.id} className="hover:bg-slate-50/50 transition">
+                      {/* Client Info */}
+                      <td className="py-4 px-5">
+                        <strong className="font-bold text-slate-900 text-sm block">{c.name}</strong>
+                        <span className="text-[10px] text-slate-400 uppercase tracking-widest font-mono font-bold">{c.industry}</span>
+                      </td>
 
-                    <div className="flex items-center gap-2">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold leading-none font-mono ${
-                        c.contractStatus === 'Active' ? 'bg-emerald-50 text-emerald-705 text-emerald-800 border border-emerald-150' :
-                        c.contractStatus === 'Pending' ? 'bg-amber-50 text-amber-705 text-amber-800 border border-amber-150' :
-                        c.contractStatus === 'Suspended' ? 'bg-rose-50 text-rose-705 text-rose-800 border border-rose-150' :
-                        'bg-slate-100 text-slate-700'
-                      }`}>
-                        ● {c.contractStatus}
-                      </span>
-                    </div>
-                  </div>
+                      {/* Contact Person */}
+                      <td className="py-4 px-5 font-semibold text-slate-700">
+                        {c.contactPerson}
+                      </td>
 
-                  {/* Body Specs */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-2 text-xs text-slate-500 mb-4">
-                    <div className="flex items-center gap-2.5">
-                      <User className="w-4 h-4 text-slate-400 shrink-0" />
-                      <span className="font-medium text-slate-700">{c.contactPerson}</span>
-                    </div>
-                    <div className="flex items-center gap-2.5">
-                      <Phone className="w-4 h-4 text-slate-400 shrink-0" />
-                      <span className="font-mono font-medium text-slate-700">{c.phone || 'N/A'}</span>
-                    </div>
-                    <div className="flex items-center gap-2.5 sm:col-span-2">
-                      <Mail className="w-4 h-4 text-slate-400 shrink-0" />
-                      <span className="truncate font-medium text-slate-600">{c.email}</span>
-                    </div>
-                    <div className="flex items-center gap-2.5 sm:col-span-2 text-[11px] leading-relaxed">
-                      <MapPin className="w-4 h-4 text-slate-400 shrink-0" />
-                      <span className="text-slate-500">{c.address}</span>
-                    </div>
-                  </div>
+                      {/* Contact Details */}
+                      <td className="py-4 px-5">
+                        <div className="flex flex-col gap-0.5">
+                          <span className="font-mono">{c.email}</span>
+                          <span className="text-slate-400 font-mono">{c.phone || 'N/A'}</span>
+                          <span className="text-[10px] text-slate-450 italic truncate max-w-[180px]">{c.address}</span>
+                        </div>
+                      </td>
 
-                  {/* Metadata Indicators */}
-                  <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2 mb-4">
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="text-slate-400 font-medium">Staff count:</span>
-                      <strong className="text-slate-700 font-mono">{c.staffPopulation} employees</strong>
-                    </div>
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="text-slate-400 font-medium">Package:</span>
-                      <strong className="text-blue-700 font-semibold">{clientPkg ? clientPkg.name : 'Unassigned'}</strong>
-                    </div>
-                    {c.notes && (
-                      <p className="text-[11px] text-slate-400 italic border-t border-slate-200 pt-2 mt-1.5 leading-relaxed">
-                        &ldquo;{c.notes}&rdquo;
-                      </p>
-                    )}
-                  </div>
-                </div>
+                      {/* Package / Population */}
+                      <td className="py-4 px-5">
+                        <div className="flex flex-col">
+                          <strong className="text-blue-700 font-semibold">{clientPkg ? clientPkg.name : 'Unassigned'}</strong>
+                          <span className="text-slate-400 font-mono text-[10px]">{c.staffPopulation} employees</span>
+                        </div>
+                      </td>
 
-                {/* Campaign engagements tracker and actions */}
-                <div className="border-t border-slate-100 pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="text-[11px] text-slate-400 flex items-center gap-1">
-                    <Briefcase className="w-3.5 h-3.5 text-slate-400" />
-                    <span>Active engagements: <strong className="text-slate-600 font-mono font-medium">{clientCampaigns.length}</strong> campaigns</span>
-                  </div>
+                      {/* Active Campaigns */}
+                      <td className="py-4 px-5 font-mono text-center font-semibold text-slate-700">
+                        {clientCampaigns.length}
+                      </td>
 
-                  <div className="flex gap-2 justify-end">
-                    {canEdit && (
-                      <>
-                        <button
-                          onClick={() => handleEditClick(c)}
-                          className="px-3 py-1.5 text-xs text-slate-600 border border-slate-200 bg-white hover:bg-slate-50 hover:text-slate-800 rounded-lg inline-flex items-center gap-1 font-semibold transition"
-                        >
-                          <Edit className="w-3.5 h-3.5" />
-                          Update Profile
-                        </button>
+                      {/* Status */}
+                      <td className="py-4 px-5">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase font-mono border ${
+                          c.contractStatus === 'Active' ? 'bg-emerald-50 text-emerald-800 border-emerald-150' :
+                          c.contractStatus === 'Pending' ? 'bg-amber-50 text-amber-800 border-amber-150' :
+                          c.contractStatus === 'Suspended' ? 'bg-rose-50 text-rose-800 border-rose-150' :
+                          'bg-slate-100 text-slate-700 border-slate-200'
+                        }`}>
+                          ● {c.contractStatus}
+                        </span>
+                      </td>
 
-                        <button
-                          onClick={() => c.isArchived ? onRestoreClient(c.id) : onArchiveClient(c.id)}
-                          className={`px-3 py-1.5 text-xs rounded-lg inline-flex items-center gap-1 font-semibold border transition ${
-                            c.isArchived
-                              ? 'bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100'
-                              : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-100'
-                          }`}
-                        >
-                          {c.isArchived ? (
+                      {/* Actions */}
+                      <td className="py-4 px-5 text-right">
+                        <div className="flex gap-2 justify-end">
+                          {canEdit && (
                             <>
-                              <RotateCcw className="w-3.5 h-3.5" />
-                              Restore Account
-                            </>
-                          ) : (
-                            <>
-                              <Archive className="w-3.5 h-3.5" />
-                              Archive
+                              <button
+                                onClick={() => handleEditClick(c)}
+                                className="px-2.5 py-1.5 text-[11px] text-slate-600 border border-slate-200 bg-white hover:bg-slate-50 hover:text-slate-800 rounded-lg inline-flex items-center gap-1 font-semibold transition cursor-pointer"
+                                title="Update Profile"
+                              >
+                                <Edit className="w-3 h-3" />
+                                Edit
+                              </button>
+
+                              <button
+                                onClick={() => c.isArchived ? onRestoreClient(c.id) : onArchiveClient(c.id)}
+                                className={`px-2.5 py-1.5 text-[11px] rounded-lg inline-flex items-center gap-1 font-semibold border transition cursor-pointer ${
+                                  c.isArchived
+                                    ? 'bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100'
+                                    : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-100'
+                                }`}
+                                title={c.isArchived ? 'Restore Client' : 'Archive Client'}
+                              >
+                                {c.isArchived ? (
+                                  <>
+                                    <RotateCcw className="w-3 h-3" />
+                                    Restore
+                                  </>
+                                ) : (
+                                  <>
+                                    <Archive className="w-3 h-3" />
+                                    Archive
+                                  </>
+                                )}
+                              </button>
                             </>
                           )}
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })
-        ) : (
-          <div className="p-12 text-center text-slate-400 border border-dashed border-slate-200 rounded-xl bg-white xl:col-span-2">
-            No matching corporate client profiles found.
-          </div>
-        )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center text-slate-400 font-semibold bg-white">
+                    No matching corporate client profiles found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Modal Profile Editor Form */}

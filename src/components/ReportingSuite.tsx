@@ -55,6 +55,53 @@ export default function ReportingSuite({
   // Mock export action trigger
   const [exportMessage, setExportMessage] = useState<string | null>(null);
 
+  const createCsvDownload = (filename: string, headers: string[], rows: string[][]) => {
+    const csvContent = [headers, ...rows]
+      .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      .join('\r\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const getExcelData = () => {
+    if (activeReportTab === 'corporate') {
+      const headers = ['Campaign ID', 'Name', 'Date', 'Venue', 'Target', 'Status'];
+      const rows = campaigns
+        .filter(c => c.clientId === selectedClientId)
+        .map(c => [c.id, c.name, c.screeningDate, c.location, c.targetSize, c.status]);
+      return { filename: 'corporate-report.csv', headers, rows };
+    }
+
+    if (activeReportTab === 'billing') {
+      const headers = ['Invoice ID', 'Client', 'Amount', 'Balance', 'Status', 'Due Date'];
+      const rows = invoices.map(inv => [inv.id, clients.find(c => c.id === inv.clientId)?.name || '', `$${inv.totalAmount.toFixed(2)}`, `$${inv.outstandingBalance.toFixed(2)}`, inv.status, inv.dueDate]);
+      return { filename: 'billing-report.csv', headers, rows };
+    }
+
+    if (activeReportTab === 'followup') {
+      const headers = ['Review ID', 'Test ID', 'Participant', 'Classification', 'Referral', 'Repeat Recommended'];
+      const rows = reviews.map(r => [r.id, r.testId, participants.find(p => p.id === tests.find(t => t.id === r.testId)?.participantId)?.fullName || '', tests.find(t => t.id === r.testId)?.classification || '', r.scheduleReferral, r.requestRepeatTest ? 'YES' : 'NO']);
+      return { filename: 'followup-report.csv', headers, rows };
+    }
+
+    const headers = ['Participant ID', 'Full Name', 'DOB', 'Company', 'Campaign', 'PSA Value', 'Classification', 'Status'];
+    const rows = participants.map(p => {
+      const test = tests.find(t => t.participantId === p.id);
+      const campaign = campaigns.find(c => c.id === p.campaignId);
+      const company = clients.find(c => c.id === p.companyId);
+      return [p.id, p.fullName, p.dob, company?.name || '', campaign?.name || '', test?.psaValue ?? 'N/A', test?.classification || 'N/A', test?.status || 'N/A'];
+    });
+    return { filename: 'individual-results.csv', headers, rows };
+  };
+
   const calculateAge = (born: string) => {
     if (!born) return 0;
     const now = new Date('2026-06-03');
@@ -68,11 +115,13 @@ export default function ReportingSuite({
   const handleExport = (format: 'PDF' | 'Excel' | 'Print') => {
     setExportMessage(`Standardizing report content... Fetching HIPAA credentials...`);
     setTimeout(() => {
-      if (format === 'Print') {
+      if (format === 'Print' || format === 'PDF') {
         window.print();
         setExportMessage(null);
       } else {
-        setExportMessage(`Successfully exported report to certified ${format} file format successfully!`);
+        const { filename, headers, rows } = getExcelData();
+        createCsvDownload(filename, headers, rows);
+        setExportMessage(`Excel export ready. Downloading ${filename}`);
         setTimeout(() => setExportMessage(null), 3500);
       }
     }, 800);
@@ -107,7 +156,7 @@ export default function ReportingSuite({
   return (
     <div className="space-y-6" id="reporting-suite-root">
       {/* Top Banner Control options */}
-      <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 bg-white p-5 rounded-xl border border-slate-200 shadow-sm animate-fade-in">
+      <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 bg-white p-5 rounded-xl border border-slate-200 shadow-sm animate-fade-in no-print">
         <div>
           <h2 className="text-xl font-bold text-slate-950 font-display tracking-tight flex items-center gap-2">
             <FileText className="w-5 h-5 text-indigo-600" />
@@ -123,7 +172,7 @@ export default function ReportingSuite({
             className="px-3.5 py-2 bg-slate-900 hover:bg-slate-950 text-white rounded-xl text-xs font-bold inline-flex items-center gap-1.5 transition uppercase tracking-wider cursor-pointer"
           >
             <Download className="w-3.5 h-3.5 text-slate-300" />
-            Export Certified PDF
+            Open Print / PDF Dialog
           </button>
           <button
             onClick={() => handleExport('Excel')}
@@ -144,14 +193,14 @@ export default function ReportingSuite({
 
       {/* Export status notifier toast */}
       {exportMessage && (
-        <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-xl text-xs text-indigo-800 font-semibold flex items-center gap-2.5">
+        <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-xl text-xs text-indigo-800 font-semibold flex items-center gap-2.5 no-print">
           <Activity className="w-4 h-4 text-indigo-500 animate-spin" />
           <span>{exportMessage}</span>
         </div>
       )}
 
       {/* Primary Tabs */}
-      <div className="flex border-b border-slate-200 gap-2 overflow-x-auto pb-0.5">
+      <div className="flex border-b border-slate-200 gap-2 overflow-x-auto pb-0.5 no-print">
         {userRole !== 'Corporate Viewer' && (
           <button
             onClick={() => setActiveReportTab('individual')}
@@ -207,7 +256,7 @@ export default function ReportingSuite({
       {activeReportTab === 'individual' && userRole !== 'Corporate Viewer' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in">
           {/* Picker Panel */}
-          <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4 h-fit">
+          <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4 h-fit no-print">
             <h4 className="font-bold font-display text-slate-900 text-sm tracking-tight border-b border-slate-200 pb-3">
               Select Patient Record
             </h4>
@@ -234,7 +283,11 @@ export default function ReportingSuite({
           </div>
 
           {/* Printable Slip Preview Container */}
-          <div className="bg-white p-6 md:p-8 rounded-xl border border-slate-200 shadow-sm col-span-2 space-y-6" id="individual-slip-printable">
+          <div
+            className="bg-white p-6 md:p-8 rounded-xl border border-slate-200 shadow-sm col-span-2 space-y-6 printable-only"
+            id="individual-slip-printable"
+            data-print-date={new Date().toISOString().split('T')[0]}
+          >
             {/* Slip Header */}
             <div className="flex justify-between items-start gap-4 pb-6 border-b border-slate-200">
               <div>
@@ -370,7 +423,7 @@ export default function ReportingSuite({
       {activeReportTab === 'corporate' && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {/* Picker Panel */}
-          <div className="bg-white p-4.5 rounded-xl border border-slate-200 shadow-sm space-y-4 h-fit">
+          <div className="bg-white p-4.5 rounded-xl border border-slate-200 shadow-sm space-y-4 h-fit no-print">
             <h4 className="font-semibold text-slate-800 text-sm tracking-tight border-b border-slate-200 pb-2">
               Corporate Account Scope
             </h4>
@@ -398,7 +451,11 @@ export default function ReportingSuite({
           </div>
 
           {/* Aggregated Report Details */}
-          <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm col-span-3 space-y-6" id="corporate-report-printable">
+          <div
+            className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm col-span-3 space-y-6 printable-only"
+            id="corporate-report-printable"
+            data-print-date={new Date().toISOString().split('T')[0]}
+          >
             {/* Report Header Logo */}
             <div className="flex justify-between items-start gap-4 pb-6 border-b border-slate-200">
               <div>
@@ -625,10 +682,10 @@ export default function ReportingSuite({
                       <td className="p-3 font-bold text-slate-700">{client?.name}</td>
                       <td className="p-3 truncate max-w-[150px]">{campaign?.name}</td>
                       <td className="p-3 font-mono">{inv.numberScreened} employees</td>
-                      <td className="p-3 font-mono font-semibold">${inv.totalAmount.toFixed(2)}</td>
-                      <td className="p-3 font-mono text-emerald-700">${(inv.totalAmount - inv.outstandingBalance).toFixed(2)}</td>
+                      <td className="p-3 font-mono font-semibold">GH₵{inv.totalAmount.toFixed(2)}</td>
+                      <td className="p-3 font-mono text-emerald-700">GH₵{(inv.totalAmount - inv.outstandingBalance).toFixed(2)}</td>
                       <td className={`p-3 font-mono font-bold ${inv.outstandingBalance > 0 ? 'text-red-600' : 'text-emerald-700'}`}>
-                        ${inv.outstandingBalance.toFixed(2)}
+                        GH₵{inv.outstandingBalance.toFixed(2)}
                       </td>
                       <td className="p-3 font-mono whitespace-nowrap">{inv.dueDate}</td>
                       <td className="p-3">

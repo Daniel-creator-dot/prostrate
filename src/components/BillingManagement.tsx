@@ -128,12 +128,12 @@ export default function BillingManagement({
 
     const amount = parseFloat(paymentAmount);
     if (isNaN(amount) || amount <= 0) {
-      alert('Accounting Error: Settlement values must be greater than $0.00.');
+      alert('Accounting Error: Settlement values must be greater than GH₵0.00.');
       return;
     }
 
     if (amount > activeInvoiceForPayment.outstandingBalance) {
-      alert(`Accounting Error: Payment of $${amount.toFixed(2)} exceeds the actual outstanding invoices balance of $${activeInvoiceForPayment.outstandingBalance.toFixed(2)}.`);
+      alert(`Accounting Error: Payment of GH₵${amount.toFixed(2)} exceeds the actual outstanding invoices balance of GH₵${activeInvoiceForPayment.outstandingBalance.toFixed(2)}.`);
       return;
     }
 
@@ -155,7 +155,7 @@ export default function BillingManagement({
           <div className="space-y-1">
             <span className="text-[10px] text-slate-400 font-bold tracking-widest block uppercase">SECURED BILLINGS</span>
             <strong className="text-2xl text-emerald-600 font-bold font-mono">
-              ${invoices.reduce((acc, curr) => acc + (curr.totalAmount - curr.outstandingBalance), 0).toFixed(2)}
+              GH₵{invoices.reduce((acc, curr) => acc + (curr.totalAmount - curr.outstandingBalance), 0).toFixed(2)}
             </strong>
             <span className="text-[10px] text-emerald-500 font-medium block">Secured bank transfers</span>
           </div>
@@ -168,7 +168,7 @@ export default function BillingManagement({
           <div className="space-y-1">
             <span className="text-[10px] text-slate-400 font-bold tracking-widest block uppercase">RECEIVABLES AGING</span>
             <strong className="text-2xl text-rose-600 font-bold font-mono">
-              ${invoices.reduce((acc, curr) => acc + curr.outstandingBalance, 0).toFixed(2)}
+              GH₵{invoices.reduce((acc, curr) => acc + curr.outstandingBalance, 0).toFixed(2)}
             </strong>
             <span className="text-[10px] text-rose-500 font-medium block">Invoices awaiting clearance</span>
           </div>
@@ -253,7 +253,7 @@ export default function BillingManagement({
                       {/* Package */}
                       <td className="py-4 px-5 text-[11px] leading-relaxed">
                         <div className="font-bold text-slate-800">{pkg ? pkg.name : 'Custom'}</div>
-                        <span className="text-[10px] text-slate-400 block font-mono font-medium">${inv.unitCost}/person rates</span>
+                        <span className="text-[10px] text-slate-400 block font-mono font-medium">GH₵{inv.unitCost}/person rates</span>
                       </td>
 
                       {/* Number screened */}
@@ -263,7 +263,7 @@ export default function BillingManagement({
 
                       {/* Total bill price */}
                       <td className="py-4 px-5 font-mono font-bold text-slate-900 whitespace-nowrap">
-                        ${inv.totalAmount.toFixed(2)}
+                        GH₵{inv.totalAmount.toFixed(2)}
                       </td>
 
                       {/* Due date */}
@@ -275,7 +275,7 @@ export default function BillingManagement({
                       <td className={`py-4 px-5 font-mono font-bold whitespace-nowrap ${
                         inv.outstandingBalance > 0 ? 'text-red-600' : 'text-emerald-700'
                       }`}>
-                        ${inv.outstandingBalance.toFixed(2)}
+                        GH₵{inv.outstandingBalance.toFixed(2)}
                       </td>
 
                       {/* Status */}
@@ -373,7 +373,7 @@ export default function BillingManagement({
                     className="w-full p-2.5 border border-slate-200 rounded-lg text-xs font-semibold bg-white text-slate-700 focus:outline-hidden"
                   >
                     {packages.map(p => (
-                      <option key={p.id} value={p.id}>{p.name} (${p.unitCost})</option>
+                      <option key={p.id} value={p.id}>{p.name} (GH₵{p.unitCost})</option>
                     ))}
                   </select>
                 </div>
@@ -393,7 +393,7 @@ export default function BillingManagement({
                 </div>
 
                 <div className="space-y-1.5 animate-fade-in">
-                  <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px]">Unit Diagnostic Base Cost ($) *</label>
+                  <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px]">Unit Diagnostic Base Cost (GH₵) *</label>
                   <input
                     type="number"
                     min={0}
@@ -420,13 +420,13 @@ export default function BillingManagement({
                 <div className="p-4 bg-slate-50/50 border border-slate-200 rounded-xl flex flex-col justify-center space-y-1.5">
                   <span className="text-[9px] uppercase font-bold tracking-wider text-slate-500">Calculated Invoice Valuation</span>
                   <div className="text-xs text-slate-700 font-bold font-mono">
-                    Subtotal: ${(invoiceNumberScreened * invoiceUnitCost).toFixed(2)}
+                    Subtotal: GH₵{(invoiceNumberScreened * invoiceUnitCost).toFixed(2)}
                   </div>
                   <div className="text-[10px] text-slate-400 font-mono">
-                    Tax Prep (5%): ${(invoiceNumberScreened * invoiceUnitCost * 0.05).toFixed(2)}
+                    Tax Prep (5%): GH₵{(invoiceNumberScreened * invoiceUnitCost * 0.05).toFixed(2)}
                   </div>
                   <div className="text-sm text-indigo-700 font-bold font-mono border-t border-slate-200 pt-1.5 mt-1">
-                    TOTAL: ${(invoiceNumberScreened * invoiceUnitCost * 1.05).toFixed(2)}
+                    TOTAL: GH₵{(invoiceNumberScreened * invoiceUnitCost * 1.05).toFixed(2)}
                   </div>
                 </div>
               </div>
@@ -471,12 +471,12 @@ export default function BillingManagement({
                 </div>
                 <div className="text-right">
                   <span className="text-[9px] text-slate-400 block font-bold tracking-wider uppercase">OUTSTANDING</span>
-                  <span className="font-bold text-rose-600 text-base leading-none block">${activeInvoiceForPayment.outstandingBalance.toFixed(2)}</span>
+                  <span className="font-bold text-rose-600 text-base leading-none block">GH₵{activeInvoiceForPayment.outstandingBalance.toFixed(2)}</span>
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px]">Recording Payment Amount ($) *</label>
+                <label className="text-slate-400 font-semibold tracking-wider uppercase text-[10px]">Recording Payment Amount (GH₵) *</label>
                 <input
                   type="number"
                   step="0.01"

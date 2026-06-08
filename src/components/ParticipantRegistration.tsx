@@ -179,7 +179,7 @@ export default function ParticipantRegistration({
   return (
     <div className="space-y-6" id="participant-registration-root">
       {/* Header Panel */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 no-print">
         <div>
           <h2 className="text-xl font-bold font-display text-slate-900 tracking-tight">Staff / Participant Intake Registry</h2>
           <p className="text-xs text-slate-400 mt-0.5">Log employee consent forms and dispatch unique laboratory tracking codes</p>
@@ -197,7 +197,7 @@ export default function ParticipantRegistration({
       </div>
 
       {/* Query Filters */}
-      <div className="flex flex-col sm:flex-row gap-4 bg-white p-4 rounded-xl border border-slate-200 items-center justify-between">
+      <div className="flex flex-col sm:flex-row gap-4 bg-white p-4 rounded-xl border border-slate-200 items-center justify-between no-print">
         <div className="relative w-full sm:max-w-md">
           <Search className="absolute left-3 top-2.5 h-4.5 w-4.5 text-slate-400" />
           <input
@@ -225,7 +225,7 @@ export default function ParticipantRegistration({
       </div>
 
       {/* Register List - Responsive Table layout */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden no-print">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -335,7 +335,7 @@ export default function ParticipantRegistration({
           <div className="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-sm overflow-hidden p-6 relative">
             <button
               onClick={() => setActiveBarcodeParticipant(null)}
-              className="absolute right-4 top-4 text-slate-400 hover:text-slate-600 font-bold text-xl cursor-pointer"
+              className="absolute right-4 top-4 text-slate-400 hover:text-slate-600 font-bold text-xl cursor-pointer no-print"
             >
               &times;
             </button>
@@ -380,7 +380,7 @@ export default function ParticipantRegistration({
               </div>
             </div>
 
-            <div className="mt-4 flex gap-2">
+            <div className="mt-4 flex gap-2 no-print">
               <button
                 onClick={() => {
                   window.print();

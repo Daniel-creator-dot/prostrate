@@ -453,11 +453,11 @@ export default function DashboardAnalytics({
               <div className="space-y-1">
                 <div className="flex justify-between text-xs font-semibold text-slate-600">
                   <span>Invoiced Revenue Realized</span>
-                  <span className="text-emerald-600 font-mono">${totalRevenue.toFixed(2)}</span>
+                  <span className="text-emerald-600 font-mono">GH₵{totalRevenue.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-xs font-semibold text-slate-600">
                   <span>Outstanding Receivables</span>
-                  <span className="text-rose-500 font-mono">${totalOutstanding.toFixed(2)}</span>
+                  <span className="text-rose-500 font-mono">GH₵{totalOutstanding.toFixed(2)}</span>
                 </div>
               </div>
 
@@ -480,7 +480,7 @@ export default function DashboardAnalytics({
 
             <div className="text-xs text-slate-500 bg-slate-50 p-5 rounded-xl space-y-2 border border-slate-200">
               <span className="font-semibold text-slate-800 block">Financial Performance Audit:</span>
-              <p>• Total corporate billings issued: <strong className="text-slate-800 font-mono">${(totalRevenue + totalOutstanding).toFixed(2)}</strong></p>
+              <p>• Total corporate billings issued: <strong className="text-slate-800 font-mono">GH₵{(totalRevenue + totalOutstanding).toFixed(2)}</strong></p>
               <p>• Fully paid invoices: <strong className="text-emerald-700">{filteredInvoices.filter(i => i.paymentStatus === 'Fully Paid').length} contracts</strong></p>
               <p>• Outstanding: <strong className="text-rose-600">{filteredInvoices.filter(i => i.paymentStatus === 'Unpaid' || i.paymentStatus === 'Partially Paid').length} invoices</strong></p>
             </div>

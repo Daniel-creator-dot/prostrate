@@ -44,7 +44,7 @@ import {
   Notification
 } from './types';
 
-import { getInitialDatabase, saveDatabase } from './mockData';
+
 
 // Modular child views
 import DashboardAnalytics from './components/DashboardAnalytics';
@@ -157,14 +157,45 @@ const ROLE_PERMISSIONS: Record<UserRole, {
 
 export default function App() {
   // Master local database states — initialized from API
-  const [db, setDb] = useState(() => getInitialDatabase());
+  const [db, setDb] = useState<{
+    users: SystemUser[];
+    packages: BillingPackage[];
+    clients: CorporateClient[];
+    campaigns: ScreeningCampaign[];
+    participants: Participant[];
+    tests: PSATest[];
+    reviews: SpecialistReview[];
+    invoices: Invoice[];
+    auditLogs: AuditLog[];
+    notifications: Notification[];
+  }>({
+    users: [],
+    packages: [],
+    clients: [],
+    campaigns: [],
+    participants: [],
+    tests: [],
+    reviews: [],
+    invoices: [],
+    auditLogs: [],
+    notifications: [],
+  });
   const [dbLoaded, setDbLoaded] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Current session configurations
-  const [currentUser, setCurrentUser] = useState<SystemUser>(db.users[0]); // default Super Admin
+  const [currentUser, setCurrentUser] = useState<SystemUser>({
+    id: 'USR-000',
+    name: 'Loading...',
+    email: '',
+    role: 'Super Administrator',
+    isActive: true,
+    loginCount: 0
+  });
   const [sessionToken, setSessionToken] = useState<string>('PC-AUTH-SESSION-TOKEN-883011');
   const [activeTab, setActiveTab ] = useState<string>('dashboard');
   const [notificationsPopover, setNotificationsPopover] = useState(false);
+  const [aiPopover, setAiPopover] = useState(false);
 
   // Authentication & Access Control States (Module 1)
   const [isLoggedOut, setIsLoggedOut] = useState(false);
@@ -176,7 +207,10 @@ export default function App() {
   // Load data from the PostgreSQL-backed API on mount
   useEffect(() => {
     fetch('/api/db')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error('Database server returned error status');
+        return res.json();
+      })
       .then(data => {
         setDb(data);
         if (data.users && data.users.length > 0) {
@@ -185,50 +219,74 @@ export default function App() {
         setDbLoaded(true);
       })
       .catch(err => {
-        console.warn('API unavailable, falling back to local data:', err);
+        console.error('API connection failed:', err);
+        setErrorMsg('Could not fetch data from database server. Ensure backend is running.');
         setDbLoaded(true);
       });
   }, []);
 
-  // Also persist to local storage as backup cache
   useEffect(() => {
-    if (dbLoaded) saveDatabase(db);
-  }, [db, dbLoaded]);
+    const handleBeforePrint = () => document.body.classList.add('printing-mode');
+    const handleAfterPrint = () => document.body.classList.remove('printing-mode');
+
+    window.addEventListener('beforeprint', handleBeforePrint);
+    window.addEventListener('afterprint', handleAfterPrint);
+
+    return () => {
+      window.removeEventListener('beforeprint', handleBeforePrint);
+      window.removeEventListener('afterprint', handleAfterPrint);
+    };
+  }, []);
 
   // General Notification Triggering Helper (Module 12)
-  const triggerSystemNotification = (title: string, message: string, recipient: string) => {
-    const newNotif: Notification = {
-      id: `NTF-${Date.now()}`,
-      type: 'In-App',
-      title,
-      message,
-      timestamp: new Date().toISOString(),
-      recipient,
-      isRead: false
-    };
-
-    setDb(prev => ({
-      ...prev,
-      notifications: [newNotif, ...prev.notifications]
-    }));
+  const triggerSystemNotification = async (title: string, message: string, recipient: string) => {
+    try {
+      const response = await fetch('/api/notifications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'In-App', title, message, recipient }),
+      });
+      if (!response.ok) throw new Error('Failed to create notification');
+      const created = await response.json();
+      setDb(prev => ({
+        ...prev,
+        notifications: [created, ...prev.notifications]
+      }));
+    } catch (err) {
+      console.error('Failed to trigger notification:', err);
+    }
   };
 
   // Compliance Auditing Helper (Module 11)
-  const addAuditEntry = (action: string, recordAffected: string, previousValue: string | null, newValue: string | null) => {
-    const newLog: AuditLog = {
-      id: `LOG-${Date.now()}`,
-      user: `${currentUser.name} (${currentUser.role})`,
-      timestamp: new Date().toISOString(),
-      action,
-      recordAffected,
-      previousValue,
-      newValue
-    };
-
-    setDb(prev => ({
-      ...prev,
-      auditLogs: [newLog, ...prev.auditLogs]
-    }));
+  const addAuditEntry = async (
+    action: string,
+    recordAffected: string,
+    previousValue: string | null,
+    newValue: string | null,
+    userOverride?: string
+  ) => {
+    const userVal = userOverride || (currentUser ? `${currentUser.name} (${currentUser.role})` : 'Anonymous (Guest)');
+    try {
+      const response = await fetch('/api/audit-logs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user: userVal,
+          action,
+          recordAffected,
+          previousValue,
+          newValue
+        }),
+      });
+      if (!response.ok) throw new Error('Failed to add audit log');
+      const created = await response.json();
+      setDb(prev => ({
+        ...prev,
+        auditLogs: [created, ...prev.auditLogs]
+      }));
+    } catch (err) {
+      console.error('Failed to add audit log:', err);
+    }
   };
 
   // Module 1 Simulated password verification / Lockout
@@ -246,20 +304,13 @@ export default function App() {
       
       const auditLogMsg = `Failed login attempt with email: ${loginEmail}`;
       // Add failed attempt log
-      const newLogVal: AuditLog = {
-        id: `LOG-FAIL-${Date.now()}`,
-        user: 'Anonymous (Guest)',
-        timestamp: new Date().toISOString(),
-        action: 'FAILED_LOGIN_ATTEMPT',
-        recordAffected: `Email ${loginEmail}`,
-        previousValue: null,
-        newValue: `Password attempt count: ${attempts}`
-      };
-
-      setDb(prev => ({
-        ...prev,
-        auditLogs: [newLogVal, ...prev.auditLogs]
-      }));
+      addAuditEntry(
+        'FAILED_LOGIN_ATTEMPT',
+        `Email ${loginEmail}`,
+        null,
+        `Password attempt count: ${attempts}`,
+        'Anonymous (Guest)'
+      );
 
       if (attempts >= 4) {
         setIsAccountLocked(true);
@@ -282,20 +333,13 @@ export default function App() {
     setActiveTab('dashboard');
     
     // Log success entry
-    const newLogVal: AuditLog = {
-      id: `LOG-SUC-${Date.now()}`,
-      user: `${matchedUser.name} (${matchedUser.role})`,
-      timestamp: new Date().toISOString(),
-      action: 'SUCCESSFUL_LOGIN',
-      recordAffected: `User Account ${matchedUser.id}`,
-      previousValue: null,
-      newValue: `Login session authenticated successfully`
-    };
-
-    setDb(prev => ({
-      ...prev,
-      auditLogs: [newLogVal, ...prev.auditLogs]
-    }));
+    addAuditEntry(
+      'SUCCESSFUL_LOGIN',
+      `User Account ${matchedUser.id}`,
+      null,
+      `Login session authenticated successfully`,
+      `${matchedUser.name} (${matchedUser.role})`
+    );
   };
 
   const handleLogout = () => {
@@ -315,11 +359,9 @@ export default function App() {
       setDb(prev => ({ ...prev, clients: [created, ...prev.clients] }));
       addAuditEntry('CLIENT_ONBOARDED', `Client ${created.id}`, null, `Onboarded ${newClient.name}`);
       triggerSystemNotification('New Client Onboarded', `Corporate client ${newClient.name} successfully created.`, 'Super Administrator');
-    } catch {
-      // Fallback to local-only
-      const clId = `CL-${Math.floor(100 + Math.random() * 900)}`;
-      const fullClient: CorporateClient = { ...newClient, id: clId, isArchived: false };
-      setDb(prev => ({ ...prev, clients: [fullClient, ...prev.clients] }));
+    } catch (err) {
+      console.error(err);
+      alert('Failed to save client to database. Ensure connection is active.');
     }
   };
 
@@ -331,32 +373,45 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updated),
       });
-    } catch { /* continue with local update */ }
-    setDb(prevDb => ({
-      ...prevDb,
-      clients: prevDb.clients.map(c => c.id === updated.id ? updated : c)
-    }));
-    addAuditEntry('CLIENT_UPDATED', `Client ${updated.id}`, JSON.stringify(prev), JSON.stringify(updated));
+      setDb(prevDb => ({
+        ...prevDb,
+        clients: prevDb.clients.map(c => c.id === updated.id ? updated : c)
+      }));
+      addAuditEntry('CLIENT_UPDATED', `Client ${updated.id}`, JSON.stringify(prev), JSON.stringify(updated));
+    } catch (err) {
+      console.error(err);
+      alert('Failed to update client in database.');
+    }
   };
 
   const handleArchiveClient = async (id: string) => {
     const prev = db.clients.find(c => c.id === id);
-    try { await fetch(`/api/clients/${id}/archive`, { method: 'PATCH' }); } catch { /* local fallback */ }
-    setDb(prevDb => ({
-      ...prevDb,
-      clients: prevDb.clients.map(c => c.id === id ? { ...c, isArchived: true } : c)
-    }));
-    addAuditEntry('CLIENT_ARCHIVED', `Client ${id}`, prev?.isArchived ? 'Archived' : 'Active', 'Archived');
+    try {
+      await fetch(`/api/clients/${id}/archive`, { method: 'PATCH' });
+      setDb(prevDb => ({
+        ...prevDb,
+        clients: prevDb.clients.map(c => c.id === id ? { ...c, isArchived: true } : c)
+      }));
+      addAuditEntry('CLIENT_ARCHIVED', `Client ${id}`, prev?.isArchived ? 'Archived' : 'Active', 'Archived');
+    } catch (err) {
+      console.error(err);
+      alert('Failed to archive client in database.');
+    }
   };
 
   const handleRestoreClient = async (id: string) => {
     const prev = db.clients.find(c => c.id === id);
-    try { await fetch(`/api/clients/${id}/restore`, { method: 'PATCH' }); } catch { /* local fallback */ }
-    setDb(prevDb => ({
-      ...prevDb,
-      clients: prevDb.clients.map(c => c.id === id ? { ...c, isArchived: false } : c)
-    }));
-    addAuditEntry('CLIENT_RESTORED', `Client ${id}`, prev?.isArchived ? 'Archived' : 'Active', 'Active');
+    try {
+      await fetch(`/api/clients/${id}/restore`, { method: 'PATCH' });
+      setDb(prevDb => ({
+        ...prevDb,
+        clients: prevDb.clients.map(c => c.id === id ? { ...c, isArchived: false } : c)
+      }));
+      addAuditEntry('CLIENT_RESTORED', `Client ${id}`, prev?.isArchived ? 'Archived' : 'Active', 'Active');
+    } catch (err) {
+      console.error(err);
+      alert('Failed to restore client in database.');
+    }
   };
 
   // Module 3 Campaigns callbacks
@@ -371,10 +426,9 @@ export default function App() {
       setDb(prev => ({ ...prev, campaigns: [...prev.campaigns, created] }));
       addAuditEntry('CAMPAIGN_SCHEDULED', `Campaign ${created.id}`, null, `Created campaign ${newC.name}`);
       triggerSystemNotification('New Outreach Campaign Scheduled', `Campaign ${newC.name} is scheduled on ${newC.screeningDate}.`, 'Registration Officer');
-    } catch {
-      const campId = `CMP-${Math.floor(200 + Math.random() * 800)}`;
-      const fullCampaign: ScreeningCampaign = { ...newC, id: campId };
-      setDb(prev => ({ ...prev, campaigns: [...prev.campaigns, fullCampaign] }));
+    } catch (err) {
+      console.error(err);
+      alert('Failed to save campaign to database.');
     }
   };
 
@@ -386,14 +440,17 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updated),
       });
-    } catch { /* local fallback */ }
-    setDb(prevDb => ({
-      ...prevDb,
-      campaigns: prevDb.campaigns.map(c => c.id === updated.id ? updated : c)
-    }));
-    addAuditEntry('CAMPAIGN_MODIFIED', `Campaign ${updated.id}`, JSON.stringify(prev), JSON.stringify(updated));
-    if (prev?.status !== 'Completed' && updated.status === 'Completed') {
-      triggerSystemNotification('Screening Campaign Completed', `Campaign ${updated.name} completed. Outpatient billings ready for accounts officer.`, 'Accounts Officer');
+      setDb(prevDb => ({
+        ...prevDb,
+        campaigns: prevDb.campaigns.map(c => c.id === updated.id ? updated : c)
+      }));
+      addAuditEntry('CAMPAIGN_MODIFIED', `Campaign ${updated.id}`, JSON.stringify(prev), JSON.stringify(updated));
+      if (prev?.status !== 'Completed' && updated.status === 'Completed') {
+        triggerSystemNotification('Screening Campaign Completed', `Campaign ${updated.name} completed. Outpatient billings ready for accounts officer.`, 'Accounts Officer');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Failed to update campaign in database.');
     }
   };
 
@@ -412,19 +469,9 @@ export default function App() {
         tests: [test, ...prev.tests]
       }));
       addAuditEntry('PARTICIPANT_REGISTERED', `Participant ${participant.id}`, null, `Registered ${newP.fullName} & generated test queue.`);
-    } catch {
-      // Fallback to local-only
-      const pId = `PRT-${Math.floor(300 + Math.random() * 700)}`;
-      const birthVal = new Date(newP.dob);
-      const age = new Date().getFullYear() - birthVal.getFullYear();
-      const fullParticipant: Participant = { ...newP, id: pId, age, registrationDate: new Date().toISOString().split('T')[0] };
-      const testId = `TST-${Math.floor(6000 + Math.random() * 3000)}`;
-      const assocTest: PSATest = {
-        id: testId, participantId: pId, sampleId: `SMP-${Math.floor(1000 + Math.random() * 9000)}`,
-        collectionDate: new Date().toISOString().split('T')[0], processingDate: null, laboratoryOfficer: null,
-        psaValue: null, status: 'Sample Collected', remarks: 'Registered. Diagnostic vial dispatched.', classification: 'Pending', history: []
-      };
-      setDb(prev => ({ ...prev, participants: [...prev.participants, fullParticipant], tests: [assocTest, ...prev.tests] }));
+    } catch (err) {
+      console.error(err);
+      alert('Failed to register participant in database.');
     }
   };
 
@@ -435,13 +482,15 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updated),
       });
-    } catch { /* local fallback */ }
-    setDb(prevDb => ({
-      ...prevDb,
-      participants: prevDb.participants.map(p => p.id === updated.id ? updated : p)
-    }));
-
-    addAuditEntry('PARTICIPANT_DEMOGRAPHICS_CORRECTED', `Participant ${updated.id}`, null, `Amended registration metrics for ${updated.fullName}`);
+      setDb(prevDb => ({
+        ...prevDb,
+        participants: prevDb.participants.map(p => p.id === updated.id ? updated : p)
+      }));
+      addAuditEntry('PARTICIPANT_DEMOGRAPHICS_CORRECTED', `Participant ${updated.id}`, null, `Amended registration metrics for ${updated.fullName}`);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to update participant details in database.');
+    }
   };
 
   // Module 5 & 6 PSA Lab Analytes callbacks
@@ -458,16 +507,13 @@ export default function App() {
       });
       const updatedTest = await res.json();
       setDb(prevDb => ({ ...prevDb, tests: prevDb.tests.map(t => t.id === testId ? updatedTest : t) }));
-    } catch {
-      setDb(prevDb => ({
-        ...prevDb,
-        tests: prevDb.tests.map(t => t.id === testId ? { ...t, psaValue: value, remarks: remark, processingDate: new Date().toISOString().split('T')[0], laboratoryOfficer: currentUser.name, status: 'Completed', classification } : t)
-      }));
-    }
-
-    addAuditEntry('TEST_RESULT_UPLOADED', `PSATest ${testId}`, 'psaValue: null', `psaValue: ${value}, classification: ${classification}`);
-    if (classification !== 'Normal') {
-      triggerSystemNotification('Elevated PSA Detection', `PSA value of ${value} ng/mL registered for sample ${testId}. Specialist urologist assessment recommended.`, 'Doctor / Specialist');
+      addAuditEntry('TEST_RESULT_UPLOADED', `PSATest ${testId}`, 'psaValue: null', `psaValue: ${value}, classification: ${classification}`);
+      if (classification !== 'Normal') {
+        triggerSystemNotification('Elevated PSA Detection', `PSA value of ${value} ng/mL registered for sample ${testId}. Specialist urologist assessment recommended.`, 'Doctor / Specialist');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Failed to upload test result to database.');
     }
   };
 
@@ -487,17 +533,13 @@ export default function App() {
       });
       const updatedTest = await res.json();
       setDb(prevDb => ({ ...prevDb, tests: prevDb.tests.map(t => t.id === testId ? updatedTest : t) }));
-    } catch {
-      const correctionLog = { timestamp: new Date().toISOString(), modifiedBy: `${currentUser.name} (${currentUser.role})`, prevValue: prevTest.psaValue, newValue, reason };
-      setDb(prevDb => ({
-        ...prevDb,
-        tests: prevDb.tests.map(t => t.id === testId ? { ...t, psaValue: newValue, classification, processingDate: new Date().toISOString().split('T')[0], laboratoryOfficer: currentUser.name, remarks: `Corrected assay. Reason: ${reason}`, history: [correctionLog, ...t.history] } : t)
-      }));
-    }
-
-    addAuditEntry('TEST_RESULT_CORRECTED', `PSATest ${testId}`, `psaValue: ${prevTest.psaValue}`, `psaValue: ${newValue}, correction reason logged`);
-    if (classification !== 'Normal') {
-      triggerSystemNotification('Corrected Elevated PSA Value', `Assay override: corrected PSA to ${newValue} ng/mL for sample ${testId}. Diagnostic review modified.`, 'Doctor / Specialist');
+      addAuditEntry('TEST_RESULT_CORRECTED', `PSATest ${testId}`, `psaValue: ${prevTest.psaValue}`, `psaValue: ${newValue}, correction reason logged`);
+      if (classification !== 'Normal') {
+        triggerSystemNotification('Corrected Elevated PSA Value', `Assay override: corrected PSA to ${newValue} ng/mL for sample ${testId}. Diagnostic review modified.`, 'Doctor / Specialist');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Failed to correct test result in database.');
     }
   };
 
@@ -515,16 +557,12 @@ export default function App() {
         return { ...prev, reviews: exists ? prev.reviews.map(r => r.testId === newRev.testId ? created : r) : [...prev.reviews, created] };
       });
       addAuditEntry('CLINICAL_DIAGNOSIS_COMMITTED', `SpecialistReview ${created.id}`, null, `Physician diagnosis logs recorded for sample ${newRev.testId}`);
-    } catch {
-      const revId = `REV-${Math.floor(1000 + Math.random() * 8000)}`;
-      const finalReview: SpecialistReview = { ...newRev, id: revId, reviewDate: new Date().toISOString().split('T')[0], specialistName: currentUser.name };
-      setDb(prev => {
-        const exists = prev.reviews.some(r => r.testId === newRev.testId);
-        return { ...prev, reviews: exists ? prev.reviews.map(r => r.testId === newRev.testId ? finalReview : r) : [...prev.reviews, finalReview] };
-      });
-    }
-    if (newRev.scheduleReferral !== 'None') {
-      triggerSystemNotification('Urology Referral Dispatched', `Patient reference ${newRev.participantId} referred to ${newRev.scheduleReferral}.`, 'Super Administrator');
+      if (newRev.scheduleReferral !== 'None') {
+        triggerSystemNotification('Urology Referral Dispatched', `Patient reference ${newRev.participantId} referred to ${newRev.scheduleReferral}.`, 'Super Administrator');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Failed to save clinical review to database.');
     }
   };
 
@@ -538,14 +576,10 @@ export default function App() {
       });
       const created = await res.json();
       setDb(prev => ({ ...prev, invoices: [created, ...prev.invoices] }));
-      addAuditEntry('INVOICE_ISSUED', `Invoice ${created.id}`, null, `Issued invoice of $${created.totalAmount.toFixed(2)} to client ${newInv.clientId}`);
-    } catch {
-      const invId = `INV-2026-${Math.floor(100 + Math.random() * 800)}`;
-      const subtotal = newInv.numberScreened * newInv.unitCost;
-      const tax = subtotal * 0.05;
-      const totalAmount = subtotal + tax;
-      const fullInvoice: Invoice = { ...newInv, id: invId, subtotal, tax, totalAmount, outstandingBalance: totalAmount, paymentStatus: 'Unpaid', issuedDate: new Date().toISOString().split('T')[0], payments: [] };
-      setDb(prev => ({ ...prev, invoices: [fullInvoice, ...prev.invoices] }));
+      addAuditEntry('INVOICE_ISSUED', `Invoice ${created.id}`, null, `Issued invoice of GH₵${created.totalAmount.toFixed(2)} to client ${newInv.clientId}`);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to generate invoice in database.');
     }
   };
 
@@ -561,16 +595,11 @@ export default function App() {
       });
       const updatedInvoice = await res.json();
       setDb(prevDb => ({ ...prevDb, invoices: prevDb.invoices.map(i => i.id === invId ? updatedInvoice : i) }));
-    } catch {
-      const remaining = prevInv.outstandingBalance - amount;
-      const status: Invoice['paymentStatus'] = remaining <= 0 ? 'Fully Paid' : 'Partially Paid';
-      const newPaymentRecord = { id: `PMT-${Date.now()}`, amount, date: new Date().toISOString().split('T')[0], method, transactionRef: ref };
-      setDb(prevDb => ({
-        ...prevDb,
-        invoices: prevDb.invoices.map(i => i.id === invId ? { ...i, outstandingBalance: remaining, paymentStatus: status, payments: [...i.payments, newPaymentRecord] } : i)
-      }));
+      addAuditEntry('INVOICE_PAYMENT_SETTLED', `Invoice ${invId}`, `outstandingBalance: ${prevInv.outstandingBalance}`, `Recorded payment of GH₵${amount.toFixed(2)} via ${method}`);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to record payment in database.');
     }
-    addAuditEntry('INVOICE_PAYMENT_SETTLED', `Invoice ${invId}`, `outstandingBalance: ${prevInv.outstandingBalance}`, `Recorded payment of $${amount.toFixed(2)} via ${method}`);
   };
 
   // Module 1 User states modifications (Super Admin Settings Control)
@@ -585,19 +614,20 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updated),
       });
-    } catch { /* local fallback */ }
-
-    setDb(prev => ({
-      ...prev,
-      users: prev.users.map(u => u.id === uId ? updated : u)
-    }));
-
-    addAuditEntry(
-      'USER_CREDENTIALS_TOGGLED',
-      `User ${uId}`,
-      `isActive: ${target.isActive}`,
-      `isActive: ${updated.isActive}`
-    );
+      setDb(prev => ({
+        ...prev,
+        users: prev.users.map(u => u.id === uId ? updated : u)
+      }));
+      addAuditEntry(
+        'USER_CREDENTIALS_TOGGLED',
+        `User ${uId}`,
+        `isActive: ${target.isActive}`,
+        `isActive: ${updated.isActive}`
+      );
+    } catch (err) {
+      console.error(err);
+      alert('Failed to update user status in database.');
+    }
   };
 
   const handleRoleChange = async (uId: string, newRole: UserRole) => {
@@ -611,19 +641,20 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updated),
       });
-    } catch { /* local fallback */ }
-
-    setDb(prev => ({
-      ...prev,
-      users: prev.users.map(u => u.id === uId ? updated : u)
-    }));
-
-    addAuditEntry(
-      'USER_ROLE_REALLOCATED',
-      `User ${uId}`,
-      `role: ${target.role}`,
-      `role: ${newRole}`
-    );
+      setDb(prev => ({
+        ...prev,
+        users: prev.users.map(u => u.id === uId ? updated : u)
+      }));
+      addAuditEntry(
+        'USER_ROLE_REALLOCATED',
+        `User ${uId}`,
+        `role: ${target.role}`,
+        `role: ${newRole}`
+      );
+    } catch (err) {
+      console.error(err);
+      alert('Failed to update user role in database.');
+    }
   };
 
   // Role permissions checking helper
@@ -632,57 +663,37 @@ export default function App() {
   // System statistics derived
   const unreadNotifCount = db.notifications.filter(n => !n.isRead).length;
 
-  return (
-    <div className="min-h-screen bg-[#f8fafc] flex flex-col antialiased text-slate-800" id="primecare-app-root">
-      
-      {/* Role Switcher Banner */}
-      <div className="bg-slate-900 border-b border-slate-800 py-2 px-6 flex flex-col md:flex-row items-center justify-between text-xs gap-3">
-        <div className="flex items-center gap-2">
-          <Sparkles className="w-3.5 h-3.5 text-blue-400 shrink-0 select-none" />
-          <span className="text-slate-300">
-            <strong className="font-semibold text-white">Role Switcher</strong> — Toggle active roles to audit workflows
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2.5">
-          <span className="text-slate-400 font-medium text-xs">Session:</span>
-          <select
-            value={currentUser.role}
-            onChange={(e) => {
-              const matched = db.users.find(u => u.role === e.target.value);
-              if (matched) {
-                setCurrentUser(matched);
-                const dummyLog: AuditLog = {
-                  id: `LOG-SWAP-${Date.now()}`,
-                  user: `${matched.name} (${matched.role})`,
-                  timestamp: new Date().toISOString(),
-                  action: 'SESSION_ROLE_SWAPPED',
-                  recordAffected: `Active session`,
-                  previousValue: null,
-                  newValue: `Swapped role authorization to ${matched.role}`
-                };
-                setDb(prev => ({ ...prev, auditLogs: [dummyLog, ...prev.auditLogs] }));
-                if (matched.role === 'Corporate Viewer') {
-                  setActiveTab('reports');
-                } else if (matched.role === 'Laboratory Officer') {
-                  setActiveTab('laboratory');
-                } else if (matched.role === 'Doctor / Specialist') {
-                  setActiveTab('clinical');
-                } else if (matched.role === 'Registration Officer') {
-                  setActiveTab('participants');
-                } else {
-                  setActiveTab('dashboard');
-                }
-              }
-            }}
-            className="bg-slate-800 text-slate-200 py-1 px-3 rounded-md border border-slate-700 cursor-pointer text-xs font-medium hover:bg-slate-700 transition"
-          >
-            {db.users.map(u => (
-              <option key={u.id} value={u.role}>{u.name} — {u.role}</option>
-            ))}
-          </select>
+  if (!dbLoaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white font-sans">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500 mx-auto"></div>
+          <p className="text-sm font-semibold tracking-wide text-slate-400">Connecting to PrimeCare Clinical Database...</p>
         </div>
       </div>
+    );
+  }
+
+  if (errorMsg) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white font-sans p-6">
+        <div className="max-w-md w-full bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-xl text-center space-y-4">
+          <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 mx-auto font-bold text-xl">!</div>
+          <h2 className="text-lg font-bold text-white">Database Connection Error</h2>
+          <p className="text-xs text-slate-400 leading-relaxed">{errorMsg}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition cursor-pointer"
+          >
+            Retry Connection
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-screen overflow-hidden bg-[#f8fafc] flex flex-col antialiased text-slate-800" id="primecare-app-root">
 
       {/* Primary Layout */}
       {isLoggedOut ? (
@@ -734,152 +745,146 @@ export default function App() {
               <span className="font-semibold uppercase tracking-wider block text-[9px] text-slate-400">Demo credentials:</span>
               <p>Email: <strong className="font-mono text-slate-700">sarah.jenkins@primecare.com</strong></p>
               <p>Password: <strong className="font-mono text-slate-700">password</strong></p>
-              <p className="text-slate-400 text-[10px] pt-1">Switch roles using the bar at the top.</p>
+              <p className="text-slate-400 text-[10px] pt-1">Use the small AI helper button in the header for quick access.</p>
             </div>
           </div>
         </div>
       ) : (
         /* Authenticated Frame */
-        <div className="flex-1 flex flex-col md:flex-row">
+        <div className="flex-1 flex flex-row min-h-0">
           
           {/* LEFT COMPACT NAVIGATION SIDEBAR */}
-          <aside className="w-full md:w-64 bg-white text-slate-600 flex flex-col justify-between shrink-0 border-r border-slate-200">
+          <aside className="w-64 h-full bg-white text-slate-700 flex flex-col justify-between shrink-0 border-r border-slate-200 shadow-xl">
             <div>
               {/* Institution Title */}
-              <div className="p-5 border-b border-slate-100 text-center md:text-left space-y-0.5">
-                <h1 className="text-[15px] font-bold text-slate-900 tracking-tight flex items-center justify-center md:justify-start gap-2 font-display">
-                  <div className="p-1.5 bg-slate-900 rounded-md text-white">
-                    <ShieldCheck className="w-3.5 h-3.5" />
+              <div className="p-5 pb-4 border-b border-slate-100 bg-gradient-to-b from-slate-50 to-white">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 rounded-2xl bg-slate-900 text-white shadow-sm">
+                    <ShieldCheck className="w-4 h-4" />
                   </div>
-                  PrimeCare
-                </h1>
-                <span className="text-[9px] font-mono text-slate-400 tracking-[0.15em] block font-semibold uppercase pl-7">PSA Lifecycle</span>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900 tracking-tight">PrimeCare</p>
+                    <p className="text-[11px] uppercase tracking-[0.24em] text-slate-400">PSA Lifecycle</p>
+                  </div>
+                </div>
               </div>
 
               {/* Sidebar Action Menu Tabs List */}
-              <nav className="p-4 space-y-1 text-xs">
-                {currentUser.role !== 'Corporate Viewer' && (
-                  <button
-                    onClick={() => setActiveTab('dashboard')}
-                    className={`w-full px-3 py-2 rounded-lg inline-flex items-center gap-2.5 font-medium transition duration-150 cursor-pointer text-[13px] ${
-                      activeTab === 'dashboard' ? 'bg-slate-900 text-white font-semibold' : 'hover:bg-slate-50 text-slate-600'
-                    }`}
-                  >
-                    <Activity className="w-4 h-4" />
-                    Dashboard
-                  </button>
-                )}
-
-                {(perm.canManageClients) && (
-                  <button
-                    onClick={() => setActiveTab('clients')}
-                    className={`w-full px-3 py-2 rounded-lg inline-flex items-center gap-2.5 font-medium transition duration-150 cursor-pointer text-[13px] ${
-                      activeTab === 'clients' ? 'bg-slate-900 text-white font-semibold' : 'hover:bg-slate-50 text-slate-600'
-                    }`}
-                  >
-                    <Briefcase className="w-4 h-4" />
-                    Clients
-                  </button>
-                )}
-
-                {(perm.canManageCampaigns) && (
-                  <button
-                    onClick={() => setActiveTab('campaigns')}
-                    className={`w-full px-3 py-2 rounded-lg inline-flex items-center gap-2.5 font-medium transition duration-150 cursor-pointer text-[13px] ${
-                      activeTab === 'campaigns' ? 'bg-slate-900 text-white font-semibold' : 'hover:bg-slate-50 text-slate-600'
-                    }`}
-                  >
-                    <Calendar className="w-4 h-4" />
-                    Campaigns
-                  </button>
-                )}
-
-                {(perm.canRegisterParticipants) && (
-                  <button
-                    onClick={() => setActiveTab('participants')}
-                    className={`w-full px-3 py-2 rounded-lg inline-flex items-center gap-2.5 font-medium transition duration-150 cursor-pointer text-[13px] ${
-                      activeTab === 'participants' ? 'bg-slate-900 text-white font-semibold' : 'hover:bg-slate-50 text-slate-600'
-                    }`}
-                  >
-                    <Users className="w-4 h-4" />
-                    Participants
-                  </button>
-                )}
-
-                {(perm.canEnterLabResults) && (
-                  <button
-                    onClick={() => setActiveTab('laboratory')}
-                    className={`w-full px-3 py-2 rounded-lg inline-flex items-center gap-2.5 font-medium transition duration-150 cursor-pointer text-[13px] ${
-                      activeTab === 'laboratory' ? 'bg-slate-900 text-white font-semibold' : 'hover:bg-slate-50 text-slate-600'
-                    }`}
-                  >
-                    <FlaskConical className="w-4 h-4" />
-                    Laboratory
-                  </button>
-                )}
-
-                {(perm.canPerformClinicalReview) && (
-                  <button
-                    onClick={() => setActiveTab('clinical')}
-                    className={`w-full px-3 py-2 rounded-lg inline-flex items-center gap-2.5 font-medium transition duration-150 cursor-pointer text-[13px] ${
-                      activeTab === 'clinical' ? 'bg-slate-900 text-white font-semibold' : 'hover:bg-slate-50 text-slate-600'
-                    }`}
-                  >
-                    <Stethoscope className="w-4 h-4" />
-                    Clinical Review
-                  </button>
-                )}
-
-                {(perm.canManageBilling) && (
-                  <button
-                    onClick={() => setActiveTab('billing')}
-                    className={`w-full px-3 py-2 rounded-lg inline-flex items-center gap-2.5 font-medium transition duration-150 cursor-pointer text-[13px] ${
-                      activeTab === 'billing' ? 'bg-slate-900 text-white font-semibold' : 'hover:bg-slate-50 text-slate-600'
-                    }`}
-                  >
-                    <DollarSign className="w-4 h-4" />
-                    Billing
-                  </button>
-                )}
-
-                <button
-                  onClick={() => setActiveTab('reports')}
-                  className={`w-full px-3 py-2 rounded-lg inline-flex items-center gap-2.5 font-medium transition duration-150 cursor-pointer text-[13px] ${
-                    activeTab === 'reports' ? 'bg-slate-900 text-white font-semibold' : 'hover:bg-slate-50 text-slate-600'
-                    }`}
-                >
-                  <FileText className="w-4 h-4" />
-                  Reports
-                </button>
-
-                {(perm.canViewAuditLogs) && (
+              <div className="p-4 flex-1 min-h-0 overflow-y-auto">
+                <nav className="space-y-2 sidebar-menu">
+                  {currentUser.role !== 'Corporate Viewer' && (
                     <button
-                      onClick={() => setActiveTab('audits')}
-                      className={`w-full px-3 py-2 rounded-lg inline-flex items-center gap-2.5 font-medium transition duration-150 cursor-pointer text-[13px] ${
-                        activeTab === 'audits' ? 'bg-slate-900 text-white font-semibold' : 'hover:bg-slate-50 text-slate-600'
-                      }`}
-                    >
-                      <History className="w-4 h-4" />
-                      Audit Trail
+                      onClick={() => setActiveTab('dashboard')}
+                      className={`w-full rounded-2xl flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-semibold transition duration-150 cursor-pointer ${
+                        activeTab === 'dashboard' ? 'active bg-black text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'
+                      }`}>
+                      <Activity className="w-4 h-4" />
+                      Dashboard
                     </button>
-                )}
+                  )}
 
-                {(currentUser.role === 'Super Administrator') && (
+                  {(perm.canManageClients) && (
+                    <button
+                      onClick={() => setActiveTab('clients')}
+                      className={`w-full rounded-2xl flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-semibold transition duration-150 cursor-pointer ${
+                        activeTab === 'clients' ? 'active bg-black text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'
+                      }`}>
+                      <Briefcase className="w-4 h-4" />
+                      Clients
+                    </button>
+                  )}
+
+                  {(perm.canManageCampaigns) && (
+                    <button
+                      onClick={() => setActiveTab('campaigns')}
+                      className={`w-full rounded-2xl flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-semibold transition duration-150 cursor-pointer ${
+                        activeTab === 'campaigns' ? 'active bg-black text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'
+                      }`}>
+                      <Calendar className="w-4 h-4" />
+                      Campaigns
+                    </button>
+                  )}
+
+                  {(perm.canRegisterParticipants) && (
+                    <button
+                      onClick={() => setActiveTab('participants')}
+                      className={`w-full rounded-2xl flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-semibold transition duration-150 cursor-pointer ${
+                        activeTab === 'participants' ? 'active bg-black text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'
+                      }`}>
+                      <Users className="w-4 h-4" />
+                      Participants
+                    </button>
+                  )}
+
+                  {(perm.canEnterLabResults) && (
+                    <button
+                      onClick={() => setActiveTab('laboratory')}
+                      className={`w-full rounded-2xl flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-semibold transition duration-150 cursor-pointer ${
+                        activeTab === 'laboratory' ? 'active bg-black text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'
+                      }`}>
+                      <FlaskConical className="w-4 h-4" />
+                      Laboratory
+                    </button>
+                  )}
+
+                  {(perm.canPerformClinicalReview) && (
+                    <button
+                      onClick={() => setActiveTab('clinical')}
+                      className={`w-full rounded-2xl flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-semibold transition duration-150 cursor-pointer ${
+                        activeTab === 'clinical' ? 'active bg-black text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'
+                      }`}>
+                      <Stethoscope className="w-4 h-4" />
+                      Clinical Review
+                    </button>
+                  )}
+
+                  {(perm.canManageBilling) && (
+                    <button
+                      onClick={() => setActiveTab('billing')}
+                      className={`w-full rounded-2xl flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-semibold transition duration-150 cursor-pointer ${
+                        activeTab === 'billing' ? 'active bg-black text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'
+                      }`}>
+                      <DollarSign className="w-4 h-4" />
+                      Billing
+                    </button>
+                  )}
+
                   <button
-                    onClick={() => setActiveTab('settings')}
-                    className={`w-full px-3 py-2 rounded-lg inline-flex items-center gap-2.5 font-medium transition duration-150 cursor-pointer text-[13px] ${
-                      activeTab === 'settings' ? 'bg-slate-900 text-white font-semibold' : 'hover:bg-slate-50 text-slate-600'
-                    }`}
-                  >
-                    <Settings className="w-4 h-4" />
-                    Settings
+                    onClick={() => setActiveTab('reports')}
+                    className={`w-full rounded-2xl flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-semibold transition duration-150 cursor-pointer ${
+                      activeTab === 'reports' ? 'active bg-black text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'
+                    }`}>
+                    <FileText className="w-4 h-4" />
+                    Reports
                   </button>
-                )}
-              </nav>
+
+                  {(perm.canViewAuditLogs) && (
+                      <button
+                        onClick={() => setActiveTab('audits')}
+                        className={`w-full rounded-2xl flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-semibold transition duration-150 cursor-pointer ${
+                          activeTab === 'audits' ? 'active bg-black text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'
+                        }`}>
+                        <History className="w-4 h-4" />
+                        Audit Trail
+                      </button>
+                  )}
+
+                  {(currentUser.role === 'Super Administrator') && (
+                    <button
+                      onClick={() => setActiveTab('settings')}
+                      className={`w-full rounded-2xl flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-semibold transition duration-150 cursor-pointer ${
+                        activeTab === 'settings' ? 'active bg-black text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'
+                      }`}>
+                      <Settings className="w-4 h-4" />
+                      Settings
+                    </button>
+                  )}
+                </nav>
+              </div>
             </div>
 
             {/* Bottom active profile user line */}
-            <div className="p-4 border-t border-slate-100 bg-slate-50/30 space-y-3 shrink-0">
+            <div className="p-5 border-t border-slate-200 bg-slate-50 space-y-3 shrink-0">
               <div className="space-y-0.5">
                 <span className="text-[9px] text-slate-400 uppercase tracking-[0.12em] font-semibold block">Signed in as</span>
                 <p className="text-[13px] font-semibold text-slate-800 truncate leading-tight">{currentUser.name}</p>
@@ -906,11 +911,40 @@ export default function App() {
                 <span>PrimeCare Active</span>
               </div>
 
-              <div className="flex items-center gap-4">
-                {/* Notification Bell popover toggle */}
+              <div className="flex items-center gap-3">
                 <div className="relative">
                   <button
-                    onClick={() => setNotificationsPopover(!notificationsPopover)}
+                    onClick={() => {
+                      setAiPopover(!aiPopover);
+                      setNotificationsPopover(false);
+                    }}
+                    className="inline-flex items-center gap-1.5 p-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-md cursor-pointer transition"
+                    title="AI assistant"
+                  >
+                    <Sparkles className="w-4 h-4 text-slate-600" />
+                    <span className="text-[11px] font-semibold">AI</span>
+                  </button>
+
+                  {aiPopover && (
+                    <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-slate-200 p-3 z-40 space-y-2 animate-fade-in text-slate-700">
+                      <p className="text-slate-900 text-sm font-semibold">PrimeCare AI</p>
+                      <p className="text-xs text-slate-500 leading-relaxed">Use this quick assistant for workflow guidance, insights, or a fast system check.</p>
+                      <button
+                        type="button"
+                        className="w-full text-left rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-[11px] font-semibold text-slate-700 hover:bg-slate-100 transition"
+                      >
+                        Open AI helper
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="relative">
+                  <button
+                    onClick={() => {
+                      setNotificationsPopover(!notificationsPopover);
+                      setAiPopover(false);
+                    }}
                     className="p-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-md cursor-pointer transition relative"
                     title="Notifications"
                   >

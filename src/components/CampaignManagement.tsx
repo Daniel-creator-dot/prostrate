@@ -133,105 +133,118 @@ export default function CampaignManagement({
         )}
       </div>
 
-      {/* Campaign Listing Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {campaigns.map(c => {
-          const client = clients.find(cl => cl.id === c.clientId);
-          const enrolledCount = participants.filter(p => p.campaignId === c.id).length;
-          const completionPct = c.targetParticipantCount > 0
-            ? Math.round((enrolledCount / c.targetParticipantCount) * 100)
-            : 0;
+      {/* Campaign Listing Table */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr className="bg-slate-50/50 border-b border-slate-200 text-slate-400 font-bold text-[10px] uppercase tracking-widest">
+                <th className="py-3.5 px-5">Campaign Info</th>
+                <th className="py-3.5 px-5">Employer Client</th>
+                <th className="py-3.5 px-5">Screening Date</th>
+                <th className="py-3.5 px-5">Venue Location</th>
+                <th className="py-3.5 px-5">Roster / Team</th>
+                <th className="py-3.5 px-5">Progress (Registrants / Target)</th>
+                <th className="py-3.5 px-5">Status</th>
+                <th className="py-3.5 px-5 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="text-xs text-slate-600 divide-y divide-slate-100">
+              {campaigns.length > 0 ? (
+                campaigns.map(c => {
+                  const client = clients.find(cl => cl.id === c.clientId);
+                  const enrolledCount = participants.filter(p => p.campaignId === c.id).length;
+                  const completionPct = c.targetParticipantCount > 0
+                    ? Math.round((enrolledCount / c.targetParticipantCount) * 100)
+                    : 0;
 
-          return (
-            <div
-              key={c.id}
-              className="bg-white rounded-xl border border-slate-200 hover:border-slate-300 hover:shadow-xs transition duration-150 p-6 flex flex-col justify-between space-y-4"
-            >
-              <div>
-                {/* Header Context */}
-                <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-1">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 tracking-widest flex items-center gap-1">
-                      <Building className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                      {client ? client.name : 'Unknown Corp'}
-                    </span>
-                    <h4 className="font-bold font-display text-slate-900 text-base tracking-tight leading-snug">{c.name}</h4>
-                  </div>
+                  return (
+                    <tr key={c.id} className="hover:bg-slate-50/50 transition">
+                      {/* Campaign Info */}
+                      <td className="py-4 px-5">
+                        <strong className="font-bold text-slate-900 text-sm block">{c.name}</strong>
+                        {c.notes && <span className="text-[10px] text-slate-400 block italic max-w-[150px] truncate" title={c.notes}>{c.notes}</span>}
+                      </td>
 
-                  <span className={`inline-flex px-2.5 py-1 rounded-full text-[10px] font-bold uppercase shrink-0 font-mono tracking-tight leading-none border ${
-                    c.status === 'Completed' ? 'bg-emerald-50 text-emerald-800 border-emerald-150' :
-                    c.status === 'In-Progress' ? 'bg-blue-50 text-blue-800 border-blue-150' :
-                    c.status === 'Scheduled' ? 'bg-slate-50 text-slate-600 border-slate-150' :
-                    'bg-rose-50 text-rose-800 border-rose-150'
-                  }`}>
-                    ● {c.status}
-                  </span>
-                </div>
+                      {/* Employer Client */}
+                      <td className="py-4 px-5 font-semibold text-slate-700">
+                        {client ? client.name : 'Unknown Corp'}
+                      </td>
 
-                {/* Logistics breakdown */}
-                <div className="space-y-2.5 pt-3.5 text-xs text-slate-500">
-                  <div className="flex items-center gap-2.5">
-                    <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
-                    <span className="font-mono font-medium text-slate-700">{c.screeningDate}</span>
-                  </div>
+                      {/* Screening Date */}
+                      <td className="py-4 px-5 font-mono text-slate-600 font-medium">
+                        {c.screeningDate}
+                      </td>
 
-                  <div className="flex items-center gap-2.5">
-                    <MapPin className="w-4 h-4 text-slate-400 shrink-0" />
-                    <span className="truncate text-slate-600 font-medium">{c.venue}</span>
-                  </div>
+                      {/* Venue Location */}
+                      <td className="py-4 px-5 truncate max-w-[150px] font-medium text-slate-600" title={c.venue}>
+                        {c.venue}
+                      </td>
 
-                  <div className="flex items-center gap-2.5">
-                    <Compass className="w-4 h-4 text-slate-400 shrink-0" />
-                    <span className="truncate italic text-slate-500 font-medium">Roster: {c.assignedTeam || 'None assigned'}</span>
-                  </div>
-                </div>
+                      {/* Roster / Team */}
+                      <td className="py-4 px-5 italic text-slate-500 font-medium">
+                        {c.assignedTeam || 'None assigned'}
+                      </td>
 
-                {/* Progress Indicators */}
-                <div className="pt-4 space-y-2 border-t border-slate-100 mt-4">
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-slate-400 flex items-center gap-1 font-semibold">
-                      <Users className="w-3.5 h-3.5" />
-                      Registrants:
-                    </span>
-                    <strong className="text-slate-700 font-mono">
-                      {enrolledCount} / {c.targetParticipantCount} <span className="text-slate-400 font-normal">({completionPct}%)</span>
-                    </strong>
-                  </div>
+                      {/* Progress Bar */}
+                      <td className="py-4 px-5">
+                        <div className="space-y-1.5 w-44">
+                          <div className="flex justify-between items-center text-[10px] font-mono font-medium text-slate-500">
+                            <span>{enrolledCount} / {c.targetParticipantCount}</span>
+                            <span>{completionPct}%</span>
+                          </div>
+                          <div className="overflow-hidden h-1.5 text-xs flex rounded-full bg-slate-100">
+                            <div
+                              style={{ width: `${Math.min(100, completionPct)}%` }}
+                              className={`flex flex-col text-center whitespace-nowrap text-white justify-center transition-all duration-300 rounded-full ${
+                                c.status === 'Completed' ? 'bg-emerald-500' : 'bg-blue-500'
+                              }`}
+                            ></div>
+                          </div>
+                        </div>
+                      </td>
 
-                  <div className="overflow-hidden h-1.5 text-xs flex rounded-full bg-slate-100">
-                    <div
-                      style={{ width: `${Math.min(100, completionPct)}%` }}
-                      className={`flex flex-col text-center whitespace-nowrap text-white justify-center transition-all duration-300 rounded-full ${
-                        c.status === 'Completed' ? 'bg-emerald-500' : 'bg-blue-500'
-                      }`}
-                    ></div>
-                  </div>
-                </div>
+                      {/* Status */}
+                      <td className="py-4 px-5">
+                        <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold uppercase font-mono border ${
+                          c.status === 'Completed' ? 'bg-emerald-50 text-emerald-800 border-emerald-150' :
+                          c.status === 'In-Progress' ? 'bg-blue-50 text-blue-800 border-blue-150' :
+                          c.status === 'Scheduled' ? 'bg-slate-50 text-slate-600 border-slate-150' :
+                          'bg-rose-50 text-rose-800 border-rose-150'
+                        }`}>
+                          ● {c.status}
+                        </span>
+                      </td>
 
-                {c.notes && (
-                  <p className="text-[11px] text-slate-400 italic pt-2 line-clamp-2 leading-relaxed">
-                    &ldquo;{c.notes}&rdquo;
-                  </p>
-                )}
-              </div>
-
-              {/* Action Toolbar */}
-              <div className="flex justify-end pt-3 border-t border-slate-100">
-                {canEdit ? (
-                  <button
-                    onClick={() => handleEditClick(c)}
-                    className="px-3 py-1.5 text-xs font-semibold text-slate-600 border border-slate-200 bg-white hover:bg-slate-50 hover:text-slate-805 rounded-lg inline-flex items-center gap-1.5 transition"
-                  >
-                    <Settings className="w-3.5 h-3.5" />
-                    Configure Campaign
-                  </button>
-                ) : (
-                  <span className="text-[10px] text-slate-300 uppercase font-mono tracking-wider">Read Only Access</span>
-                )}
-              </div>
-            </div>
-          );
-        })}
+                      {/* Actions */}
+                      <td className="py-4 px-5 text-right">
+                        <div className="flex gap-2 justify-end">
+                          {canEdit ? (
+                            <button
+                              onClick={() => handleEditClick(c)}
+                              className="px-2.5 py-1.5 text-[11px] font-semibold text-slate-600 border border-slate-200 bg-white hover:bg-slate-50 hover:text-slate-800 rounded-lg inline-flex items-center gap-1 transition cursor-pointer"
+                            >
+                              <Settings className="w-3 h-3" />
+                              Configure
+                            </button>
+                          ) : (
+                            <span className="text-[10px] text-slate-350 uppercase font-mono tracking-wider">Read-Only</span>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan={8} className="py-12 text-center text-slate-400 font-semibold bg-white">
+                    No outreach screening campaigns scheduled.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Campaign Configuration Modal */}
