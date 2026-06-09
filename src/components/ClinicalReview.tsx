@@ -10,7 +10,6 @@ import {
   Heart,
   Calendar,
   Layers,
-  Search,
   CheckSquare,
   AlertTriangle,
   UserCheck,
@@ -50,6 +49,7 @@ export default function ClinicalReview({
   const [requestRepeatTest, setRequestRepeatTest] = useState(false);
   const [referralClinic, setReferralClinic] = useState('');
   const [followUpStatus, setFollowUpStatus] = useState<SpecialistReview['status']>('Reviewed');
+  const [viewingTest, setViewingTest] = useState<PSATest | null>(null);
 
   const isSpecialist = userRole === 'Super Administrator' || userRole === 'Doctor / Specialist';
 
@@ -179,13 +179,12 @@ export default function ClinicalReview({
 
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
               <input
                 type="text"
                 placeholder="Search participant name..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8 pr-4 py-1.5 border border-slate-200 rounded-lg text-xs font-semibold focus:outline-hidden text-slate-700 bg-white"
+                className="px-4 py-2 border border-slate-200 rounded-lg text-xs font-semibold focus:outline-hidden text-slate-700 bg-white"
               />
             </div>
 
@@ -207,15 +206,13 @@ export default function ClinicalReview({
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50/50 border-b border-slate-200 text-slate-400 font-bold text-[10px] uppercase tracking-widest">
-                <th className="py-3.5 px-5">Screening ID</th>
-                <th className="py-3.5 px-5">Demographics</th>
-                <th className="py-3.5 px-5">Employer Client</th>
-                <th className="py-3.5 px-5">Measured PSA Value</th>
-                <th className="py-3.5 px-5">Specialist Diagnosis Status</th>
-                <th className="py-3.5 px-5">Critical Referrals</th>
-                <th className="py-3.5 px-5 text-right">Observation Desk</th>
-              </tr>
+                <tr className="bg-slate-50/50 border-b border-slate-200 text-slate-400 font-bold text-[10px] uppercase tracking-widest">
+                  <th className="py-3.5 px-5">Screening ID</th>
+                  <th className="py-3.5 px-5">Demographics</th>
+                  <th className="py-3.5 px-5">Measured PSA Value</th>
+                  <th className="py-3.5 px-5">Specialist Diagnosis Status</th>
+                  <th className="py-3.5 px-5 text-right">Actions</th>
+                </tr>
             </thead>
             <tbody className="text-xs text-slate-600 divide-y divide-slate-100">
               {filteredReviewTests.length > 0 ? (
@@ -241,10 +238,6 @@ export default function ClinicalReview({
                         )}
                       </td>
 
-                      <td className="py-4 px-5">
-                        <span className="font-bold text-slate-700">{client ? client.name : 'Unknown'}</span>
-                      </td>
-
                       <td className="py-4 px-5 whitespace-nowrap">
                         <span className="font-mono bg-rose-50 border border-rose-100 text-rose-800 font-bold px-2.5 py-1 text-xs rounded-lg inline-block">
                           {t.psaValue !== null ? t.psaValue.toFixed(2) : '--'} ng/mL
@@ -268,25 +261,23 @@ export default function ClinicalReview({
                         )}
                       </td>
 
-                      <td className="py-4 px-5 truncate max-w-[150px] text-[11px] text-slate-500 italic font-medium">
-                        {review && review.scheduleReferral !== 'None' ? (
-                          <span className="inline-flex items-center gap-1.5" title={review.scheduleReferral}>
-                            <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                            {review.scheduleReferral}
-                          </span>
-                        ) : (
-                          <span className="text-slate-400 not-italic">No active referrals</span>
-                        )}
-                      </td>
+                      <td className="py-4 px-5 text-right whitespace-nowrap flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => setViewingTest(t)}
+                          className="px-2 py-1.5 text-xs bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold rounded-lg inline-flex items-center gap-2 transition"
+                          title="View details"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
+                          View
+                        </button>
 
-                      <td className="py-4 px-5 text-right whitespace-nowrap">
                         {isSpecialist ? (
                           <button
                             onClick={() => handleOpenReview(t)}
                             className="px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold rounded-lg inline-flex items-center gap-1 transition cursor-pointer"
                           >
                             <FileText className="w-3.5 h-3.5 text-blue-500" />
-                            {review ? 'Update Diagnosis' : 'Diagnose Case'}
+                            {review ? 'Update' : 'Diagnose'}
                           </button>
                         ) : (
                           <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Physician Only</span>
@@ -297,7 +288,7 @@ export default function ClinicalReview({
                 })
               ) : (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400 font-medium">
+                  <td colSpan={5} className="py-12 text-center text-slate-400 font-medium">
                     No clinical risk profiles flagged in active laboratory registry.
                   </td>
                 </tr>
@@ -427,6 +418,72 @@ export default function ClinicalReview({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* View details modal */}
+      {viewingTest && (
+        <div className="fixed inset-0 bg-slate-900/30 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto animate-fade-in">
+          <div className="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-xl max-h-[92vh] overflow-y-auto">
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+              <h3 className="font-bold font-display text-slate-900 tracking-tight text-base">Participant Details</h3>
+              <button onClick={() => setViewingTest(null)} className="text-slate-400 hover:text-slate-600 font-bold text-xl cursor-pointer">&times;</button>
+            </div>
+
+            <div className="p-6 text-sm space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <div className="text-slate-500 text-[11px] uppercase font-semibold">Screening ID</div>
+                  <div className="font-mono font-bold text-slate-800">{viewingTest.participantId}</div>
+                </div>
+
+                <div>
+                  <div className="text-slate-500 text-[11px] uppercase font-semibold">PSA Value</div>
+                  <div className="font-bold text-rose-600">{viewingTest.psaValue !== null ? viewingTest.psaValue.toFixed(2) : '--'} ng/mL</div>
+                </div>
+              </div>
+
+              <div>
+                <div className="text-slate-500 text-[11px] uppercase font-semibold">Participant</div>
+                <div className="text-slate-800 font-semibold">
+                  {participants.find(p => p.id === viewingTest.participantId)?.fullName || 'Unknown'}
+                </div>
+              </div>
+
+              <div>
+                <div className="text-slate-500 text-[11px] uppercase font-semibold">Employer / Client</div>
+                <div className="text-slate-800 font-semibold">
+                  {(() => {
+                    const p = participants.find(p => p.id === viewingTest.participantId);
+                    const c = p ? clients.find(cl => cl.id === p.companyId) : null;
+                    return c ? c.name : 'Unknown';
+                  })()}
+                </div>
+              </div>
+
+              <div>
+                <div className="text-slate-500 text-[11px] uppercase font-semibold">Specialist Review</div>
+                <div className="text-slate-800">
+                  {(() => {
+                    const r = reviews.find(rr => rr.testId === viewingTest.id);
+                    if (!r) return <span className="text-slate-400 italic">No review recorded</span>;
+                    return (
+                      <div className="space-y-2">
+                        <div className="font-bold">Status: {r.status}</div>
+                        <div className="text-[13px] text-slate-700">Observations: {r.clinicalObservations}</div>
+                        <div className="text-[13px] text-slate-700">Recommendations: {r.recommendations}</div>
+                        <div className="text-[13px] text-slate-700">Referral: {r.scheduleReferral}</div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+
+              <div className="text-right">
+                <button onClick={() => setViewingTest(null)} className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg font-bold">Close</button>
+              </div>
+            </div>
           </div>
         </div>
       )}

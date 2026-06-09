@@ -40,6 +40,8 @@ export default function CampaignManagement({
 }: CampaignManagementProps) {
   const [showModal, setShowModal] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState<ScreeningCampaign | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [viewingCampaign, setViewingCampaign] = useState<ScreeningCampaign | null>(null);
 
   // Form Fields State
   const [name, setName] = useState('');
@@ -122,15 +124,34 @@ export default function CampaignManagement({
           <p className="text-xs text-slate-400 mt-0.5">Schedule localized work campaigns, assign equipment and team rosters</p>
         </div>
 
-        {canEdit && (
-          <button
-            onClick={() => { resetForm(); setShowModal(true); }}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold tracking-wide uppercase transition duration-150"
-          >
-            <Plus className="w-4 h-4" />
-            Schedule Campaign
-          </button>
-        )}
+        {/* Action moved into control bar below */}
+      </div>
+
+      {/* Control bar with search and actions */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="relative w-full sm:w-72">
+            <input
+              type="text"
+              placeholder="Search campaigns..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="px-4 py-2 border border-slate-200 rounded-lg text-xs font-semibold focus:outline-hidden text-slate-700 bg-white w-full"
+            />
+          </div>
+        </div>
+
+        <div>
+          {canEdit && (
+            <button
+              onClick={() => { resetForm(); setShowModal(true); }}
+              className="inline-flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold tracking-wide uppercase transition duration-150"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Schedule Campaign
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Campaign Listing Table */}
@@ -140,18 +161,22 @@ export default function CampaignManagement({
             <thead>
               <tr className="bg-slate-50/50 border-b border-slate-200 text-slate-400 font-bold text-[10px] uppercase tracking-widest">
                 <th className="py-3.5 px-5">Campaign Info</th>
-                <th className="py-3.5 px-5">Employer Client</th>
                 <th className="py-3.5 px-5">Screening Date</th>
-                <th className="py-3.5 px-5">Venue Location</th>
-                <th className="py-3.5 px-5">Roster / Team</th>
-                <th className="py-3.5 px-5">Progress (Registrants / Target)</th>
+                <th className="py-3.5 px-5">Progress</th>
                 <th className="py-3.5 px-5">Status</th>
                 <th className="py-3.5 px-5 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="text-xs text-slate-600 divide-y divide-slate-100">
               {campaigns.length > 0 ? (
-                campaigns.map(c => {
+                campaigns
+                  .filter(cc => {
+                    const q = searchTerm.trim().toLowerCase();
+                    if (!q) return true;
+                    const client = clients.find(cl => cl.id === cc.clientId);
+                    return cc.name.toLowerCase().includes(q) || client?.name.toLowerCase().includes(q) || (cc.notes || '').toLowerCase().includes(q);
+                  })
+                  .map(c => {
                   const client = clients.find(cl => cl.id === c.clientId);
                   const enrolledCount = participants.filter(p => p.campaignId === c.id).length;
                   const completionPct = c.targetParticipantCount > 0
@@ -165,25 +190,9 @@ export default function CampaignManagement({
                         <strong className="font-bold text-slate-900 text-sm block">{c.name}</strong>
                         {c.notes && <span className="text-[10px] text-slate-400 block italic max-w-[150px] truncate" title={c.notes}>{c.notes}</span>}
                       </td>
-
-                      {/* Employer Client */}
-                      <td className="py-4 px-5 font-semibold text-slate-700">
-                        {client ? client.name : 'Unknown Corp'}
-                      </td>
-
                       {/* Screening Date */}
                       <td className="py-4 px-5 font-mono text-slate-600 font-medium">
                         {c.screeningDate}
-                      </td>
-
-                      {/* Venue Location */}
-                      <td className="py-4 px-5 truncate max-w-[150px] font-medium text-slate-600" title={c.venue}>
-                        {c.venue}
-                      </td>
-
-                      {/* Roster / Team */}
-                      <td className="py-4 px-5 italic text-slate-500 font-medium">
-                        {c.assignedTeam || 'None assigned'}
                       </td>
 
                       {/* Progress Bar */}
@@ -203,7 +212,6 @@ export default function CampaignManagement({
                           </div>
                         </div>
                       </td>
-
                       {/* Status */}
                       <td className="py-4 px-5">
                         <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold uppercase font-mono border ${
@@ -218,7 +226,16 @@ export default function CampaignManagement({
 
                       {/* Actions */}
                       <td className="py-4 px-5 text-right">
-                        <div className="flex gap-2 justify-end">
+                        <div className="flex gap-2 justify-end items-center">
+                          <button
+                            onClick={() => setViewingCampaign(c)}
+                            className="px-2.5 py-1.5 text-[11px] text-slate-600 border border-slate-200 bg-white hover:bg-slate-50 hover:text-slate-800 rounded-lg inline-flex items-center gap-1 transition cursor-pointer"
+                            title="View campaign details"
+                          >
+                            <ClipboardList className="w-3 h-3" />
+                            View
+                          </button>
+
                           {canEdit ? (
                             <button
                               onClick={() => handleEditClick(c)}
@@ -237,7 +254,7 @@ export default function CampaignManagement({
                 })
               ) : (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-slate-400 font-semibold bg-white">
+                  <td colSpan={5} className="py-12 text-center text-slate-400 font-semibold bg-white">
                     No outreach screening campaigns scheduled.
                   </td>
                 </tr>
@@ -246,6 +263,56 @@ export default function CampaignManagement({
           </table>
         </div>
       </div>
+
+      {/* Campaign view modal */}
+      {viewingCampaign && (
+        <div className="fixed inset-0 bg-slate-900/30 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto animate-fade-in">
+          <div className="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+              <h3 className="font-bold font-display text-slate-900 tracking-tight text-lg">Campaign Details</h3>
+              <button onClick={() => setViewingCampaign(null)} className="text-slate-400 hover:text-slate-600 font-bold text-xl cursor-pointer">&times;</button>
+            </div>
+
+            <div className="p-6 space-y-4 text-sm">
+              <div>
+                <div className="text-slate-500 text-[11px] uppercase font-semibold">Campaign</div>
+                <div className="font-bold text-slate-900">{viewingCampaign.name}</div>
+                <div className="text-slate-600 text-[12px]">Client: {clients.find(cl => cl.id === viewingCampaign.clientId)?.name || 'Unknown'}</div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <div className="text-slate-500 text-[11px] uppercase font-semibold">Date</div>
+                  <div className="font-mono">{viewingCampaign.screeningDate}</div>
+                </div>
+                <div>
+                  <div className="text-slate-500 text-[11px] uppercase font-semibold">Venue</div>
+                  <div>{viewingCampaign.venue || '—'}</div>
+                </div>
+              </div>
+
+              <div>
+                <div className="text-slate-500 text-[11px] uppercase font-semibold">Roster / Team</div>
+                <div>{viewingCampaign.assignedTeam || 'None assigned'}</div>
+              </div>
+
+              <div>
+                <div className="text-slate-500 text-[11px] uppercase font-semibold">Progress</div>
+                <div className="text-slate-800">{participants.filter(p => p.campaignId === viewingCampaign.id).length} / {viewingCampaign.targetParticipantCount} registered</div>
+              </div>
+
+              <div>
+                <div className="text-slate-500 text-[11px] uppercase font-semibold">Notes</div>
+                <div className="text-slate-800 whitespace-pre-wrap">{viewingCampaign.notes || '—'}</div>
+              </div>
+
+              <div className="text-right">
+                <button onClick={() => setViewingCampaign(null)} className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg font-bold">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Campaign Configuration Modal */}
       {showModal && (

@@ -203,6 +203,14 @@ export default function App() {
   const [loginPassword, setLoginPassword] = useState('');
   const [failedLoginAttempts, setFailedLoginAttempts] = useState(0);
   const [isAccountLocked, setIsAccountLocked] = useState(false);
+  // New user form state (Settings)
+  const [newUserName, setNewUserName] = useState('');
+  const [newUserEmail, setNewUserEmail] = useState('');
+  const [newUserRole, setNewUserRole] = useState<UserRole>('Registration Officer');
+  // Change password form state
+  const [changeOldPassword, setChangeOldPassword] = useState('');
+  const [changeNewPassword, setChangeNewPassword] = useState('');
+  const [changeConfirmPassword, setChangeConfirmPassword] = useState('');
 
   // Load data from the PostgreSQL-backed API on mount
   useEffect(() => {
@@ -630,6 +638,112 @@ export default function App() {
     }
   };
 
+  const handleAddUser = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!newUserName || !newUserEmail) return alert('Please provide name and email for the new user.');
+    const generateTempPassword = (len = 10) => {
+      const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%';
+      let out = '';
+      for (let i = 0; i < len; i++) out += chars[Math.floor(Math.random() * chars.length)];
+      return out;
+    };
+
+    const tempPassword = generateTempPassword(10);
+
+    const candidate: Partial<SystemUser> = {
+      name: newUserName,
+      email: newUserEmail,
+      role: newUserRole,
+      isActive: true,
+      loginCount: 0,
+      tempPassword,
+      mustResetPassword: true
+    };
+
+    try {
+      const res = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(candidate),
+      });
+      if (!res.ok) throw new Error('Failed to create user');
+      const created: SystemUser = await res.json();
+      setDb(prev => ({ ...prev, users: [created, ...prev.users] }));
+      addAuditEntry('USER_CREATED', `User ${created.id}`, null, JSON.stringify(created), `${currentUser.name} (${currentUser.role})`);
+      triggerSystemNotification('User Added', `New user ${created.name} created by ${currentUser.name}`, 'Super Administrator');
+      setNewUserName(''); setNewUserEmail(''); setNewUserRole('Registration Officer');
+      // Show temporary password to admin for handoff
+      alert(`User created. Temporary password: ${tempPassword}\nAdvise recipient to change password on first login.`);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to create user on the server.');
+    }
+  };
+
+  const handleResetPassword = async (uId: string) => {
+    const target = db.users.find(u => u.id === uId);
+    if (!target) return alert('User not found');
+    if (!confirm(`Reset password for ${target.name}?`)) return;
+    const generateTempPassword = (len = 10) => {
+      const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%';
+      let out = '';
+      for (let i = 0; i < len; i++) out += chars[Math.floor(Math.random() * chars.length)];
+      return out;
+    };
+    const temp = generateTempPassword(10);
+    const updated = { ...target, tempPassword: temp, mustResetPassword: true };
+    try {
+      await fetch(`/api/users/${uId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updated),
+      });
+      setDb(prev => ({ ...prev, users: prev.users.map(u => u.id === uId ? updated : u) }));
+      addAuditEntry('USER_PASSWORD_RESET', `User ${uId}`, null, 'Temporary password issued', `${currentUser.name} (${currentUser.role})`);
+      triggerSystemNotification('Password Reset', `Temporary password issued for ${target.name}`, 'Super Administrator');
+      alert(`Password reset. Temporary password: ${temp}`);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to reset password on server.');
+    }
+  };
+
+  const handleChangePassword = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!changeNewPassword) return alert('Provide a new password');
+    if (changeNewPassword !== changeConfirmPassword) return alert('New passwords do not match');
+    const updated = { ...currentUser, tempPassword: changeNewPassword, mustResetPassword: false } as SystemUser;
+    try {
+      await fetch(`/api/users/${currentUser.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updated),
+      });
+      setDb(prev => ({ ...prev, users: prev.users.map(u => u.id === currentUser.id ? updated : u) }));
+      setCurrentUser(updated);
+      addAuditEntry('USER_PASSWORD_CHANGED', `User ${currentUser.id}`, null, 'Password changed', `${currentUser.name} (${currentUser.role})`);
+      alert('Password updated successfully.');
+      setChangeOldPassword(''); setChangeNewPassword(''); setChangeConfirmPassword('');
+    } catch (err) {
+      console.error(err);
+      alert('Failed to update password on server.');
+    }
+  };
+
+  const handleDeleteUser = async (uId: string) => {
+    if (!confirm('Permanently delete this user? This cannot be undone.')) return;
+    const prev = db.users.find(u => u.id === uId);
+    try {
+      await fetch(`/api/users/${uId}`, { method: 'DELETE' });
+      setDb(prevDb => ({ ...prevDb, users: prevDb.users.filter(u => u.id !== uId) }));
+      addAuditEntry('USER_DELETED', `User ${uId}`, JSON.stringify(prev), null, `${currentUser.name} (${currentUser.role})`);
+      triggerSystemNotification('User Removed', `User ${prev?.name || uId} removed by ${currentUser.name}`, 'Super Administrator');
+    } catch (err) {
+      console.error(err);
+      alert('Failed to delete user on the server.');
+    }
+  };
+
   const handleRoleChange = async (uId: string, newRole: UserRole) => {
     const target = db.users.find(u => u.id === uId);
     if (!target) return;
@@ -659,6 +773,22 @@ export default function App() {
 
   // Role permissions checking helper
   const perm = ROLE_PERMISSIONS[currentUser.role];
+
+  // Listen for cross-component navigation events (e.g., quick buttons inside views)
+  React.useEffect(() => {
+    const handler = (e: Event) => {
+      try {
+        // @ts-ignore custom event
+        const detail = (e as CustomEvent).detail;
+        if (detail && typeof detail === 'string') setActiveTab(detail);
+      } catch (err) {
+        // ignore
+      }
+    };
+
+    window.addEventListener('primecare:navigate', handler as EventListener);
+    return () => window.removeEventListener('primecare:navigate', handler as EventListener);
+  }, []);
 
   // System statistics derived
   const unreadNotifCount = db.notifications.filter(n => !n.isRead).length;
@@ -996,6 +1126,15 @@ export default function App() {
                   <span className="text-[13px] font-semibold text-slate-800 leading-none">{currentUser.name}</span>
                   <span className="text-[11px] text-slate-400 mt-0.5">{currentUser.role}</span>
                 </div>
+
+                <button
+                  onClick={handleLogout}
+                  className="inline-flex items-center gap-2 px-3 py-1 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-md text-sm transition"
+                  title="Sign out"
+                >
+                  <LogOut className="w-4 h-4 text-slate-600" />
+                  <span className="hidden sm:inline">Sign Out</span>
+                </button>
               </div>
             </header>
 
@@ -1166,6 +1305,33 @@ export default function App() {
                     <div className="bg-white p-5 rounded-xl border border-slate-200 space-y-4 col-span-2">
                       <h3 className="font-semibold text-slate-800 text-sm border-b border-slate-100 pb-2">Team Members</h3>
                       
+                      <form onSubmit={handleAddUser} className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-3">
+                        <input
+                          placeholder="Full name"
+                          value={newUserName}
+                          onChange={(e) => setNewUserName(e.target.value)}
+                          className="p-2 border border-slate-200 rounded-lg text-xs"
+                        />
+                        <input
+                          placeholder="email@company.com"
+                          value={newUserEmail}
+                          onChange={(e) => setNewUserEmail(e.target.value)}
+                          className="p-2 border border-slate-200 rounded-lg text-xs"
+                        />
+                        <div className="flex items-center gap-2">
+                          <select
+                            value={newUserRole}
+                            onChange={(e) => setNewUserRole(e.target.value as UserRole)}
+                            className="p-2 border border-slate-200 rounded-lg text-xs w-full"
+                          >
+                            {(['Super Administrator', 'Administrator', 'Registration Officer', 'Laboratory Officer', 'Doctor / Specialist', 'Accounts Officer', 'Corporate Viewer'] as const).map(r => (
+                              <option key={r} value={r}>{r}</option>
+                            ))}
+                          </select>
+                          <button className="px-3 py-2 bg-indigo-600 text-white rounded-lg text-xs font-bold" type="submit">Add User</button>
+                        </div>
+                      </form>
+
                       <div className="space-y-2.5 text-xs">
                         {db.users.map(u => (
                           <div key={u.id} className="p-3 border border-slate-105 rounded-xl bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -1194,6 +1360,20 @@ export default function App() {
                               >
                                 {u.isActive ? 'Active' : 'Deactivated'}
                               </button>
+                              <button
+                                onClick={() => handleResetPassword(u.id)}
+                                className="px-2 py-1 text-3xs bg-yellow-100 text-yellow-800 rounded-md hover:bg-yellow-200 transition"
+                                title="Reset password"
+                              >
+                                Reset
+                              </button>
+                              <button
+                                onClick={() => handleDeleteUser(u.id)}
+                                className="px-2 py-1 text-3xs bg-rose-100 text-rose-700 rounded-md hover:bg-rose-200 transition"
+                                title="Delete user"
+                              >
+                                Delete
+                              </button>
                             </div>
                           </div>
                         ))}
@@ -1219,6 +1399,36 @@ export default function App() {
                         <div className="space-y-1">
                           <label className="text-slate-500 font-semibold block">Assay Calibration Scope</label>
                           <span className="font-mono text-xs block text-slate-700 font-bold">Immunoassay EIA standard [CLIA]</span>
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="text-slate-500 font-semibold block">Change Your Password</label>
+                          <form onSubmit={handleChangePassword} className="space-y-2">
+                            <input
+                              type="password"
+                              placeholder="Current password"
+                              value={changeOldPassword}
+                              onChange={(e) => setChangeOldPassword(e.target.value)}
+                              className="w-full p-2 border border-slate-200 rounded-md text-xs"
+                            />
+                            <input
+                              type="password"
+                              placeholder="New password"
+                              value={changeNewPassword}
+                              onChange={(e) => setChangeNewPassword(e.target.value)}
+                              className="w-full p-2 border border-slate-200 rounded-md text-xs"
+                            />
+                            <input
+                              type="password"
+                              placeholder="Confirm new password"
+                              value={changeConfirmPassword}
+                              onChange={(e) => setChangeConfirmPassword(e.target.value)}
+                              className="w-full p-2 border border-slate-200 rounded-md text-xs"
+                            />
+                            <div className="flex gap-2">
+                              <button className="px-3 py-2 bg-indigo-600 text-white rounded-md text-xs font-bold" type="submit">Update Password</button>
+                            </div>
+                          </form>
                         </div>
 
                         <div className="pt-3 border-t border-slate-100 text-slate-400 text-[11px] leading-relaxed flex items-start gap-2">

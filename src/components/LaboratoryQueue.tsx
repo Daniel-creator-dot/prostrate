@@ -51,6 +51,7 @@ export default function LaboratoryQueue({
 
   // History viewer state
   const [viewHistoryTest, setViewHistoryTest] = useState<PSATest | null>(null);
+  const [viewingTest, setViewingTest] = useState<PSATest | null>(null);
 
   const canEdit = userRole === 'Super Administrator' || userRole === 'Laboratory Officer' || userRole === 'Doctor / Specialist';
 
@@ -188,7 +189,6 @@ export default function LaboratoryQueue({
               <tr className="bg-slate-50/50 border-b border-slate-200 text-slate-400 font-bold text-[10px] uppercase tracking-widest">
                 <th className="py-3.5 px-5">Sample ID</th>
                 <th className="py-3.5 px-5">Participant Detail</th>
-                <th className="py-3.5 px-5">Collection Date</th>
                 <th className="py-3.5 px-5">Laboratory Status</th>
                 <th className="py-3.5 px-5">Registered PSA Value</th>
                 <th className="py-3.5 px-5">Assigned Classification</th>
@@ -221,11 +221,6 @@ export default function LaboratoryQueue({
                         ) : (
                           <span className="text-rose-500 font-mono font-bold">Unidentified participant</span>
                         )}
-                      </td>
-
-                      {/* Collection Date */}
-                      <td className="py-4 px-5 font-mono text-2xs text-slate-500 whitespace-nowrap">
-                        {t.collectionDate}
                       </td>
 
                       {/* Status */}
@@ -262,7 +257,15 @@ export default function LaboratoryQueue({
                       </td>
 
                       {/* Actions */}
-                      <td className="py-4 px-5 text-right whitespace-nowrap space-x-1.5">
+                      <td className="py-4 px-5 text-right whitespace-nowrap space-x-1.5 flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => setViewingTest(t)}
+                          className="px-2 py-1 text-slate-600 bg-white border border-slate-200 rounded-lg inline-flex items-center gap-1 hover:bg-slate-50 cursor-pointer text-[10px] font-mono font-bold transition"
+                          title="View sample details"
+                        >
+                          <User className="w-3.5 h-3.5" />
+                          View
+                        </button>
                         {/* History button if corrections lookups exist */}
                         {t.history.length > 0 && (
                           <button
@@ -303,7 +306,7 @@ export default function LaboratoryQueue({
                 })
               ) : (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400 font-medium">
+                  <td colSpan={6} className="py-12 text-center text-slate-400 font-medium">
                     No matching clinical samples in target workspace directory.
                   </td>
                 </tr>
@@ -312,6 +315,42 @@ export default function LaboratoryQueue({
           </table>
         </div>
       </div>
+
+      {/* Sample detail modal */}
+      {viewingTest && (
+        <div className="fixed inset-0 bg-slate-900/30 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto animate-fade-in">
+          <div className="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+              <h3 className="font-bold font-display text-slate-900 tracking-tight text-lg">Sample Details</h3>
+              <button onClick={() => setViewingTest(null)} className="text-slate-400 hover:text-slate-600 font-bold text-xl cursor-pointer">&times;</button>
+            </div>
+
+            <div className="p-6 space-y-4 text-sm">
+              <div>
+                <div className="text-slate-500 text-[11px] uppercase font-semibold">Sample</div>
+                <div className="font-mono font-bold">{viewingTest.sampleId} • {viewingTest.id}</div>
+              </div>
+
+              <div>
+                <div className="text-slate-500 text-[11px] uppercase font-semibold">Participant</div>
+                <div className="font-bold">{participants.find(p => p.id === viewingTest.participantId)?.fullName || 'Unknown'}</div>
+                <div className="text-slate-600 text-[12px]">Client: {clients.find(c => c.id === participants.find(p => p.id === viewingTest.participantId)?.companyId)?.name || 'Unknown'}</div>
+              </div>
+
+              <div>
+                <div className="text-slate-500 text-[11px] uppercase font-semibold">Assay</div>
+                <div className="text-slate-800">PSA Value: {viewingTest.psaValue !== null ? viewingTest.psaValue.toFixed(2) + ' ng/mL' : 'Pending'}</div>
+                <div className="text-slate-600">Classification: {viewingTest.classification}</div>
+                <div className="text-slate-600">Status: {viewingTest.status}</div>
+              </div>
+
+              <div className="text-right">
+                <button onClick={() => setViewingTest(null)} className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg font-bold">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Assay Entrance Modal Form */}
       {activeTestIdForm && (

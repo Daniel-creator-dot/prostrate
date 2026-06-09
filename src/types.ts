@@ -20,6 +20,9 @@ export interface User {
   isActive: boolean;
   assignedClientId?: string; // For Corporate Viewer role
   loginCount: number;
+  // Optional fields for demo password management
+  tempPassword?: string;
+  mustResetPassword?: boolean;
 }
 
 export interface CorporateClient {

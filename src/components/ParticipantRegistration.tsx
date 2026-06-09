@@ -5,7 +5,6 @@
 
 import React, { useState } from 'react';
 import {
-  Search,
   Plus,
   Edit,
   User,
@@ -42,6 +41,7 @@ export default function ParticipantRegistration({
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>('all');
   const [showModal, setShowModal] = useState(false);
   const [editingParticipant, setEditingParticipant] = useState<Participant | null>(null);
+  const [viewingParticipant, setViewingParticipant] = useState<Participant | null>(null);
 
   // Form Fields State
   const [employeeId, setEmployeeId] = useState('');
@@ -185,27 +185,18 @@ export default function ParticipantRegistration({
           <p className="text-xs text-slate-400 mt-0.5">Log employee consent forms and dispatch unique laboratory tracking codes</p>
         </div>
 
-        {canRegister && (
-          <button
-            onClick={() => { resetForm(); setShowModal(true); }}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold tracking-wide uppercase transition duration-150 cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            Check-In Participant
-          </button>
-        )}
+        {/* Register button moved into the filter bar below */}
       </div>
 
       {/* Query Filters */}
       <div className="flex flex-col sm:flex-row gap-4 bg-white p-4 rounded-xl border border-slate-200 items-center justify-between no-print">
         <div className="relative w-full sm:max-w-md">
-          <Search className="absolute left-3 top-2.5 h-4.5 w-4.5 text-slate-400" />
           <input
             type="text"
             placeholder="Search by Employee ID, full name, or screening ID..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:outline-hidden focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition bg-slate-50/50"
+            className="w-full px-4 py-2 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:outline-hidden focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition bg-slate-50/50"
           />
         </div>
 
@@ -221,6 +212,23 @@ export default function ParticipantRegistration({
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </select>
+          {canRegister && (
+            <button
+              onClick={() => { resetForm(); setShowModal(true); }}
+              className="ml-3 inline-flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold tracking-wide uppercase transition duration-150 cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Check-In
+            </button>
+          )}
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent('primecare:navigate', { detail: 'campaigns' }))}
+            className="ml-2 inline-flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-xs font-bold tracking-wide uppercase hover:bg-slate-50 transition"
+            title="Go to Campaigns"
+          >
+            <Calendar className="w-3.5 h-3.5" />
+            Campaigns
+          </button>
         </div>
       </div>
 
@@ -234,8 +242,6 @@ export default function ParticipantRegistration({
                 <th className="py-3.5 px-5">Employee ID</th>
                 <th className="py-3.5 px-5">Full Name</th>
                 <th className="py-3.5 px-5">DOB / Age</th>
-                <th className="py-3.5 px-5">Corporate Client</th>
-                <th className="py-3.5 px-5">Consent Status</th>
                 <th className="py-3.5 px-5 text-right">Actions</th>
               </tr>
             </thead>
@@ -269,39 +275,24 @@ export default function ParticipantRegistration({
                         <span className="text-[10px] text-slate-400 font-mono font-bold">{p.age} years old</span>
                       </td>
 
-                      {/* Company Campaign context */}
-                      <td className="py-4 px-5">
-                        <div className="font-bold text-slate-705 truncate max-w-[150px]">
-                          {client ? client.name : 'Unknown'}
-                        </div>
-                        <p className="text-[10px] text-slate-400 truncate max-w-[180px] font-medium">
-                          {campaign ? campaign.name : 'Unknown Campaign'}
-                        </p>
-                      </td>
-
-                      {/* Consent Checkmark */}
-                      <td className="py-4 px-5 whitespace-nowrap">
-                        {p.consentConfirmed ? (
-                          <span className="inline-flex items-center gap-1 text-emerald-800 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full font-bold uppercase text-[9px] leading-none">
-                            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                            Confirmed
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 text-rose-800 bg-rose-50 border border-rose-100 px-2.5 py-1 rounded-full font-bold uppercase text-[9px] leading-none">
-                            Declined/Missing
-                          </span>
-                        )}
-                      </td>
-
                       {/* Actions */}
-                      <td className="py-4 px-5 text-right space-x-1.5 whitespace-nowrap">
+                      <td className="py-4 px-5 text-right space-x-1.5 whitespace-nowrap flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => setViewingParticipant(p)}
+                          className="px-2 py-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg inline-flex items-center gap-1 transition cursor-pointer"
+                          title="View participant details"
+                        >
+                          <User className="w-3.5 h-3.5" />
+                          View
+                        </button>
+
                         <button
                           onClick={() => setActiveBarcodeParticipant(p)}
                           className="px-2.5 py-1.5 text-xs font-bold text-slate-600 bg-slate-50 border border-slate-200 hover:bg-slate-100 rounded-lg inline-flex items-center gap-1 transition cursor-pointer"
                           title="Generate Clinical Barcode Dispatch Badge"
                         >
                           <QrCode className="w-3.5 h-3.5" />
-                          Barcode Badge
+                          Barcode
                         </button>
 
                         {canRegister && (
@@ -319,7 +310,7 @@ export default function ParticipantRegistration({
                 })
               ) : (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400 font-medium">
+                  <td colSpan={5} className="py-12 text-center text-slate-400 font-medium">
                     No matching screening candidate logs found.
                   </td>
                 </tr>
@@ -564,6 +555,46 @@ export default function ParticipantRegistration({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Participant view modal */}
+      {viewingParticipant && (
+        <div className="fixed inset-0 bg-slate-900/30 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto animate-fade-in">
+          <div className="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+              <h3 className="font-bold font-display text-slate-900 tracking-tight text-lg">Participant Details</h3>
+              <button onClick={() => setViewingParticipant(null)} className="text-slate-400 hover:text-slate-600 font-bold text-xl cursor-pointer">&times;</button>
+            </div>
+
+            <div className="p-6 space-y-4 text-sm">
+              <div>
+                <div className="text-slate-500 text-[11px] uppercase font-semibold">Name</div>
+                <div className="font-bold text-slate-900">{viewingParticipant.fullName}</div>
+                <div className="text-slate-600 text-[12px]">Screen ID: {viewingParticipant.id} • Employee ID: {viewingParticipant.employeeId}</div>
+              </div>
+
+              <div>
+                <div className="text-slate-500 text-[11px] uppercase font-semibold">Contact</div>
+                <div className="text-slate-800">{viewingParticipant.phone || 'N/A'} • {viewingParticipant.email || 'N/A'}</div>
+              </div>
+
+              <div>
+                <div className="text-slate-500 text-[11px] uppercase font-semibold">Company / Campaign</div>
+                <div className="text-slate-800">{clients.find(cl => cl.id === viewingParticipant.companyId)?.name || 'Unknown'}</div>
+                <div className="text-slate-600 text-[12px]">{campaigns.find(c => c.id === viewingParticipant.campaignId)?.name || 'Unknown Campaign'}</div>
+              </div>
+
+              <div>
+                <div className="text-slate-500 text-[11px] uppercase font-semibold">Consent</div>
+                <div className="text-slate-800">{viewingParticipant.consentConfirmed ? 'Confirmed' : 'Not Confirmed'}</div>
+              </div>
+
+              <div className="text-right">
+                <button onClick={() => setViewingParticipant(null)} className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg font-bold">Close</button>
+              </div>
+            </div>
           </div>
         </div>
       )}

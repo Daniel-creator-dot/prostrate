@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 import {
-  Search,
+  Calendar,
   Plus,
   Edit,
   Archive,
@@ -49,6 +49,7 @@ export default function ClientManagement({
   const [showModal, setShowModal] = useState(false);
   const [editingClient, setEditingClient] = useState<CorporateClient | null>(null);
   const [showArchived, setShowArchived] = useState(false);
+  const [viewingClient, setViewingClient] = useState<CorporateClient | null>(null);
 
   // Form Fields State
   const [name, setName] = useState('');
@@ -151,27 +152,18 @@ export default function ClientManagement({
           <p className="text-xs text-slate-400 mt-0.5">Onboarding and logistics control board for hospital partnerships</p>
         </div>
         
-        {canEdit && (
-          <button
-            onClick={() => { resetForm(); setShowModal(true); }}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold tracking-wide uppercase transition duration-150"
-          >
-            <Plus className="w-4 h-4" />
-            Onboard Client
-          </button>
-        )}
+        {/* Action moved into filter bar below for improved layout */}
       </div>
 
       {/* Filtering Control Bar */}
       <div className="flex flex-col sm:flex-row gap-3 items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
         <div className="relative w-full sm:max-w-md">
-          <Search className="absolute left-3 top-2.5 h-4.5 w-4.5 text-slate-400" />
           <input
             type="text"
             placeholder="Search by company name, contact, industry..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:outline-hidden focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition"
+            className="w-full px-4 py-2 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:outline-hidden focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition"
           />
         </div>
         <div className="sm:ml-auto flex items-center gap-2">
@@ -186,6 +178,23 @@ export default function ClientManagement({
             <Archive className="w-3.5 h-3.5" />
             {showArchived ? 'Viewing Archived Clients' : 'View Archived Clients'}
           </button>
+          {canEdit && (
+            <button
+              onClick={() => { resetForm(); setShowModal(true); }}
+              className="inline-flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold tracking-wide uppercase transition duration-150"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Onboard Client
+            </button>
+          )}
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent('primecare:navigate', { detail: 'campaigns' }))}
+            className="inline-flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-xs font-bold tracking-wide uppercase hover:bg-slate-50 transition ml-2"
+            title="Go to Campaigns"
+          >
+            <Calendar className="w-3.5 h-3.5" />
+            Campaigns
+          </button>
         </div>
       </div>
 
@@ -197,9 +206,7 @@ export default function ClientManagement({
               <tr className="bg-slate-50/50 border-b border-slate-200 text-slate-400 font-bold text-[10px] uppercase tracking-widest">
                 <th className="py-3.5 px-5">Client Info</th>
                 <th className="py-3.5 px-5">Contact Person</th>
-                <th className="py-3.5 px-5">Contact Details</th>
                 <th className="py-3.5 px-5">Package / Population</th>
-                <th className="py-3.5 px-5">Active Campaigns</th>
                 <th className="py-3.5 px-5">Status</th>
                 <th className="py-3.5 px-5 text-right">Actions</th>
               </tr>
@@ -223,26 +230,12 @@ export default function ClientManagement({
                         {c.contactPerson}
                       </td>
 
-                      {/* Contact Details */}
-                      <td className="py-4 px-5">
-                        <div className="flex flex-col gap-0.5">
-                          <span className="font-mono">{c.email}</span>
-                          <span className="text-slate-400 font-mono">{c.phone || 'N/A'}</span>
-                          <span className="text-[10px] text-slate-450 italic truncate max-w-[180px]">{c.address}</span>
-                        </div>
-                      </td>
-
                       {/* Package / Population */}
                       <td className="py-4 px-5">
                         <div className="flex flex-col">
                           <strong className="text-blue-700 font-semibold">{clientPkg ? clientPkg.name : 'Unassigned'}</strong>
                           <span className="text-slate-400 font-mono text-[10px]">{c.staffPopulation} employees</span>
                         </div>
-                      </td>
-
-                      {/* Active Campaigns */}
-                      <td className="py-4 px-5 font-mono text-center font-semibold text-slate-700">
-                        {clientCampaigns.length}
                       </td>
 
                       {/* Status */}
@@ -260,6 +253,15 @@ export default function ClientManagement({
                       {/* Actions */}
                       <td className="py-4 px-5 text-right">
                         <div className="flex gap-2 justify-end">
+                          <button
+                            onClick={() => setViewingClient(c)}
+                            className="px-2.5 py-1.5 text-[11px] text-slate-600 border border-slate-200 bg-white hover:bg-slate-50 hover:text-slate-800 rounded-lg inline-flex items-center gap-1 font-semibold transition cursor-pointer"
+                            title="View client details"
+                          >
+                            <User className="w-3 h-3" />
+                            View
+                          </button>
+
                           {canEdit && (
                             <>
                               <button
@@ -301,7 +303,7 @@ export default function ClientManagement({
                 })
               ) : (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400 font-semibold bg-white">
+                  <td colSpan={5} className="py-12 text-center text-slate-400 font-semibold bg-white">
                     No matching corporate client profiles found.
                   </td>
                 </tr>
@@ -476,6 +478,45 @@ export default function ClientManagement({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Read-only view modal */}
+      {viewingClient && (
+        <div className="fixed inset-0 bg-slate-900/30 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto animate-fade-in">
+          <div className="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+              <h3 className="font-bold font-display text-slate-900 tracking-tight text-lg">Client Details</h3>
+              <button onClick={() => setViewingClient(null)} className="text-slate-400 hover:text-slate-600 font-bold text-xl cursor-pointer">&times;</button>
+            </div>
+
+            <div className="p-6 space-y-4 text-sm">
+              <div>
+                <div className="text-slate-500 text-[11px] uppercase font-semibold">Company</div>
+                <div className="font-bold text-slate-900">{viewingClient.name}</div>
+              </div>
+
+              <div>
+                <div className="text-slate-500 text-[11px] uppercase font-semibold">Contact</div>
+                <div className="text-slate-800">{viewingClient.contactPerson} • {viewingClient.phone || 'N/A'}</div>
+                <div className="text-slate-600 font-mono">{viewingClient.email}</div>
+              </div>
+
+              <div>
+                <div className="text-slate-500 text-[11px] uppercase font-semibold">Address</div>
+                <div className="text-slate-800">{viewingClient.address || 'N/A'}</div>
+              </div>
+
+              <div>
+                <div className="text-slate-500 text-[11px] uppercase font-semibold">Notes</div>
+                <div className="text-slate-800 whitespace-pre-wrap">{viewingClient.notes || '—'}</div>
+              </div>
+
+              <div className="text-right">
+                <button onClick={() => setViewingClient(null)} className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg font-bold">Close</button>
+              </div>
+            </div>
           </div>
         </div>
       )}
